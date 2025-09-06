@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load juntagrico.config %}
+{% load i18n static %}
+
+{% block page_title %}
+    <h3>{% translate "Deine Beiträge" %}</h3>
+{% endblock %}
+
+{% block content %}
+    {% config "currency" as c_currency %}
+    {% for contribution in contributions %}
+        <strong>{{ contribution.round }}</strong>: {{ c_currency }} {{ contribution.price }}
+        {% if contribution.contact_me %}
+            <br>
+            {% trans "Danke, dass wir dich kontaktieren dürfen, falls es nicht reichen sollte." %}
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
+{% block styles %}
+    <link href="{% static "jcr/css/style.css" %}" rel="stylesheet"/>
+{% endblock %}

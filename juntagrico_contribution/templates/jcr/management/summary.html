@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load jcr.common %}
+{% load i18n %}
+{% load juntagrico.common %}
+{% load juntagrico.config %}
+
+{% block page_title %}
+    <h3>
+        {% translate "Beitragsrunde:" %} {{ round.name }}
+    </h3>
+{% endblock %}
+
+{% block content %}
+    {% config "currency" as c_currency %}
+    <h4>Status</h4>
+        {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
+            Wie viele der {{ v_subscription_pl }} haben schon geboten?
+        {% endblocktrans %}
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ round.progress|floatformat:0 }}%;"
+                 aria-valuenow="{{ round.progress }}" aria-valuemin="0" aria-valuemax="100">
+                {{ round.progress|floatformat:-1 }}%
+            </div>
+        </div>
+
+        {% blocktrans %}Welche Option wurde gewählt?{% endblocktrans %}
+        <div class="progress" style="height: 2em;">
+            {% for option in round.options_with_count %}
+                <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'danger' 'secondary' 'dark' %}" role="progressbar"
+                     style="width: {{ option.selection_count }}00%; line-height: 1;"
+                     aria-valuenow="{{ option.selection_count }}" aria-valuemin="0">
+                    {{ option }}<br>{{ option.selection_percentage|floatformat:-1 }}%
+                </div>
+            {% endfor %}
+            {% if round.other_amount %}
+                <div class="progress-bar bg-light text-dark" role="progressbar"
+                     style="width: {{ round.other_amounts.count }}00%; line-height: 1;"
+                     aria-valuenow="{{ round.other_amounts.count }}" aria-valuemin="0">
+                    {% trans "Anderer Betrag" %}<br>{{ round.other_amounts_percentage|floatformat:-1 }}%
+                </div>
+            {% endif %}
+        </div>
+
+        {% if round.other_amount %}
+            {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
+            <strong>{{ c_currency }} {{ round.other_amounts.average_price }}</strong>
+        {% endif %}
+    <h4>Bilanz</h4>
+        <p>
+            {% blocktrans %}Gesamtbeitrag, wenn niemand Bieten würde (Beitragsziel):{% endblocktrans %}
+            <strong>{{ c_currency }} {{ nominal_total|floatformat:"2g" }}</strong>
+        </p>
+
+        <p>
+            {% blocktrans %}Aktuell gebotener Betriebsbeitrag:{% endblocktrans %}
+            {% with current_total=nominal_total|add:round.differential %}
+                <strong>{{ c_currency }} {{ current_total|floatformat:"2g" }} ({{ current_total|percent:nominal_total|floatformat:-1 }}%)</strong>
+            {% endwith %}
+        </p>
+
+        <p>
+            {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
+                Aktueller Überschuss/Defizit:
+            {% endblocktrans %}
+            <strong>{{ c_currency }} {{ round.differential|floatformat:"2g" }}</strong>
+        </p>
+{% endblock %}

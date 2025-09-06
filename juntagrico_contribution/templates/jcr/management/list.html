@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load juntagrico.common %}
+{% load juntagrico.config %}
+
+{% block page_title %}
+    <h3>
+        {% trans "Beitragsrunden" %}
+    </h3>
+{% endblock %}
+
+{% block content %}
+    {% if draft %}
+        <h4>Entwürfe</h4>
+        <ul>
+            {% for entry in draft %}
+                <li>
+                    <a href="{% url 'jcr:admin-summary' entry.id %}">
+                        {{ entry }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if active %}
+        <h4>Aktiv</h4>
+        <ul>
+            {% for entry in active %}
+                <li>
+                    <a href="{% url 'jcr:admin-summary' entry.id %}">
+                        {{ entry }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if closed %}
+        <h4>Abgeschlossene</h4>
+        <ul>
+            {% for entry in closed %}
+                <li>
+                    <a href="{% url 'jcr:admin-summary' entry.id %}">
+                        {{ entry }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

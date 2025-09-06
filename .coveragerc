@@ -1,0 +1,5 @@
+[run]
+include =
+    juntagrico_contribution/*
+omit =
+    juntagrico_contribution/migrations/*

@@ -1,0 +1,30 @@
+{% load i18n %}
+{% load juntagrico.config %}
+{% config "currency" as c_currency %}
+<div class="col-md-4">
+    <div class="jcr-option jcr-option-{{ option.id }}">
+        <h4 class="custom-control custom-radio jcr-option-title">
+            <input type="radio" id="option{{ option.id }}" name="selection" value="{{ option.id }}" class="custom-control-input">
+            <label class="custom-control-label" for="option{{ option.id }}">{{ option.name }}</label>
+        </h4>
+        <p>{{ option.description }}</p>
+        <strong>{{ c_currency }} {{ selection.get_total_price }}</strong>
+
+        <div class="mb-2">
+            <a class="jcr-details collapsed" data-toggle="collapse" href="#price_list{{ option.id }}">
+                {% trans "Details" %}
+                <i class="fas fa-angle-right jcr-details-arrow">
+                </i>
+            </a>
+            <div class="collapse" id="price_list{{ option.id }}">
+                <ul class="nav flex-column">
+                    {% for part, price in selection.get_parts_with_prices %}
+                        <li>
+                            {{ part }}: {{ c_currency }} {{ price }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

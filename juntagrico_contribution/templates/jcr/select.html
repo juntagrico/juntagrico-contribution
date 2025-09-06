@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load juntagrico.config %}
+{% load i18n static %}
+
+{% block page_title %}
+    <h3>{% translate "Beitragsrunde:" %} {{ round.name }}</h3>
+{% endblock %}
+
+{% block content %}
+    {% if round.description %}
+        <p>
+            {{ round.description }}
+        </p>
+    {% endif %}
+    {% config "currency" as c_currency %}
+    <form id="jcr_selection_form" method="POST">
+        {% csrf_token %}
+        <div class="row">
+            {% for selection in subscription_in_round.get_options %}
+                {% include 'jcr/snippets/option.html' with option=selection.selected_option %}
+            {% endfor %}
+            {% if round.other_amount %}
+                <div class="col-md-4">
+                    <div class="jcr-option jcr-option-custom">
+                        <h4 class="custom-control custom-radio jcr-option-title">
+                            <input type="radio" id="option_other" name="selection" value="other" class="custom-control-input">
+                            <label class="custom-control-label" for="option_other">
+                                {% trans "Anderer Betrag" %}
+                            </label>
+                        </h4>
+                        <div class="form-group">
+                            <label for="other_amount">{% blocktrans %}Beitrag in {{ c_currency }}{% endblocktrans %}</label>
+                            <input type="number" class="form-control" id="other_amount" name="other_amount"
+                                   aria-describedby="other_amount_help">
+                            <small id="other_amount_help" class="form-text text-muted">
+                                {% trans "Wähle einen anderen, höheren Beitrag" %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <span class="switch">
+                        <input type="checkbox" class="switch" id="contact_me" name="contact_me"/>
+                        <label for="contact_me">
+                            {% trans "Bitte kontaktiert mich, falls es nicht reicht." %}
+                        </label>
+                    </span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">{% trans "Gebot abgeben" %}</button>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block styles %}
+    <link href="{% static "jcr/css/style.css" %}" rel="stylesheet"/>
+{% endblock %}
