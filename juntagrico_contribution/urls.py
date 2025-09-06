@@ -8,5 +8,6 @@ urlpatterns = [
 
     # admin
     path('manage/list/', admin.list, name='admin-list'),
+    path('manage/details/', admin.details, name='admin-details'),
     path('manage/summary/<int:round_id>', admin.summary, name='admin-summary'),
 ]

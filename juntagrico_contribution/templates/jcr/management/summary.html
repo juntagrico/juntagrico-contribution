@@ -45,6 +45,10 @@
             {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
             <strong>{{ c_currency }} {{ round.other_amounts.average_price }}</strong>
         {% endif %}
+
+        <div class="mt-3">
+            <a href="{% url 'jcr:admin-details' %}?round={{ round.id }}" class="btn btn-primary">Gebote ansehen</a>
+        </div>
     <h4>Bilanz</h4>
         <p>
             {% blocktrans %}Gesamtbeitrag, wenn niemand Bieten würde (Beitragsziel):{% endblocktrans %}
