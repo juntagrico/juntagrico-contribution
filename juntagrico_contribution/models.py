@@ -4,7 +4,7 @@ from django.db import models
 from django.db.models import Count, FloatField, Avg, Sum
 from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
-from juntagrico.entity.subs import Subscription
+from juntagrico.entity.subs import Subscription, SubscriptionPart
 from juntagrico.entity.subtypes import SubscriptionType
 
 
@@ -21,6 +21,7 @@ class ContributionRound(models.Model):
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Eindeutiger Name dieser Beitragsrunde'))
     description = models.TextField(_('Beschreibung'), default='', blank=True)
+    target_amount = models.DecimalField(_('Zielbetrag'), max_digits=9, decimal_places=2)
     other_amount = models.BooleanField(_('Anderen Beitrag erlauben'), default=False,
                                        help_text=_('Erlaubt dem Mitglied einen eigenen, höhren Betrag anzugeben'))
     status = models.CharField(_('Status'), max_length=1, choices=DISPLAY_OPTIONS, default=STATUS_DRAFT)
@@ -48,8 +49,25 @@ class ContributionRound(models.Model):
         return count / submitted * 100
 
     @cached_property
-    def differential(self):
-        return sum(selection.price - selection.get_nominal_price() for selection in self.selections.all())
+    def total_selected(self):
+        return self.selections.aggregate(total=Sum('price')).get('total')
+
+    @cached_property
+    def total_unselected(self):
+        return self.subscription_parts().exclude(subscription__contributions__round=self).aggregate(
+            total=Sum('type__price')
+        ).get('total')
+
+    @property
+    def current_total(self):
+        return self.total_selected + self.total_unselected
+
+    def subscription_parts(self):
+        """
+        :return: all subscription parts that are subject to this round
+        """
+        # TODO: Refine this: exclude parts that were cancelled before a certain date
+        return SubscriptionPart.objects.filter(deactivation_date=None)
 
     def __str__(self):
         return self.name

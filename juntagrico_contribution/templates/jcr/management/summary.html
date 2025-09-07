@@ -51,21 +51,46 @@
         </div>
     <h4>Bilanz</h4>
         <p>
-            {% blocktrans %}Gesamtbeitrag, wenn niemand Bieten würde (Beitragsziel):{% endblocktrans %}
-            <strong>{{ c_currency }} {{ nominal_total|floatformat:"2g" }}</strong>
+            {% blocktrans %}Zielbetrag:{% endblocktrans %}
+            <strong>{{ c_currency }} {{ round.target_amount|floatformat:"2g" }}</strong>
         </p>
-
         <p>
-            {% blocktrans %}Aktuell gebotener Betriebsbeitrag:{% endblocktrans %}
-            {% with current_total=nominal_total|add:round.differential %}
-                <strong>{{ c_currency }} {{ current_total|floatformat:"2g" }} ({{ current_total|percent:nominal_total|floatformat:-1 }}%)</strong>
-            {% endwith %}
+            {% blocktrans %}Summe aller Gebote:{% endblocktrans %}
+            <strong>
+                {{ c_currency }} {{ round.total_selected|floatformat:"2g" }}
+            </strong>
         </p>
-
         <p>
             {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
-                Aktueller Überschuss/Defizit:
+                {{ v_subscription_pl }} ohne Gebot:
             {% endblocktrans %}
-            <strong>{{ c_currency }} {{ round.differential|floatformat:"2g" }}</strong>
+            <strong>
+                {{ c_currency }} {{ round.total_unselected|floatformat:"2g" }}
+            </strong>
         </p>
+        <p>
+            {% blocktrans %}Total:{% endblocktrans %}
+            <strong>
+                {{ c_currency }} {{ round.current_total|floatformat:"2g" }}
+                ({{ round.current_total|percent:round.target_amount|floatformat:-1 }}%)
+            </strong>
+        </p>
+        <div class="progress">
+            {% with percentage=round.total_selected|percent:round.target_amount %}
+                <div class="progress-bar bg-success" role="progressbar"
+                     style="width: {{ percentage|floatformat:0 }}%;"
+                     aria-valuenow="{{ round.total_selected|floatformat:0 }}"
+                     aria-valuemin="0">
+                    {{ percentage|floatformat:-1 }}%
+                </div>
+            {% endwith %}
+            {% with percentage=round.total_unselected|percent:round.target_amount %}
+                <div class="progress-bar bg-info" role="progressbar"
+                     style="width: {{ percentage|floatformat:0 }}%;"
+                     aria-valuenow="{{ round.total_unselected|floatformat:0 }}"
+                     aria-valuemin="0">
+                    {{ percentage|floatformat:-1 }}%
+                </div>
+            {% endwith %}
+        </div>
 {% endblock %}

@@ -1,7 +1,5 @@
-from django.db.models import Sum
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
-from juntagrico.entity.subs import SubscriptionPart
 
 from juntagrico_contribution.forms import RoundForm
 from juntagrico_contribution.models import ContributionRound
@@ -19,12 +17,8 @@ def list(request):
 @permission_required('juntagrico.can_view_contributionrounds')
 def summary(request, round_id):
     contribution_round = get_object_or_404(ContributionRound, id=round_id)
-    nominal_total = SubscriptionPart.objects.filter(deactivation_date=None).aggregate(
-        total=Sum('type__price')
-    ).get('total')
     return render(request, 'jcr/management/summary.html', {
         'round': contribution_round,
-        'nominal_total': nominal_total,
     })
 
 
