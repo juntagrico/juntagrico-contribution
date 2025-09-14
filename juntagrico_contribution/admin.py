@@ -1,6 +1,8 @@
 from adminsortable2.admin import SortableStackedInline, SortableAdminBase
 from django.contrib import admin
 from juntagrico.admins import BaseAdmin
+from django.utils.translation import gettext_lazy as _
+from juntagrico.config import Config
 
 from juntagrico_contribution.models import ContributionRound, ContributionOption, ContributionCondition, \
     ContributionSelection
@@ -12,7 +14,17 @@ class OptionInline(SortableStackedInline):
 
 
 class RoundAdmin(SortableAdminBase, BaseAdmin):
-    list_display = ['name', 'status', 'other_amount']
+    list_display = ['name', 'status', 'target_amount', 'other_amount']
+    fieldsets = [
+        (
+            None,
+            {'fields': ['status', 'name', 'description', 'target_amount', 'other_amount']},
+        ),
+        (
+            _(f'{Config.vocabulary("subscription")}-Filter'),
+            {'fields': ['creation_cutoff', 'cancellation_cutoff']}
+        ),
+    ]
     inlines = [OptionInline]
 
 

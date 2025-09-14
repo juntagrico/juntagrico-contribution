@@ -10,10 +10,17 @@ from juntagrico_contribution.utils import SubscriptionInRound
 @highlighted_menu('contribution')
 def select(request):
     member = request.user.member
+    # check if member has a subscription at all
     subscription = member.subscription_future or member.subscription_current
     if not subscription:
         return redirect('subscription-landing')
+    # check if member already selected an option for this round
     contribution_round = ContributionRound.objects.filter(status=ContributionRound.STATUS_ACTIVE).first()
+    if contribution_round.selections.filter(subscription=subscription).exists():
+        return redirect('jcr:view')
+    # check if subscription is relevant for this round
+    if not contribution_round.subscriptions().filter(pk=subscription.pk).exists():
+        return render(request, "jcr/not_applicable.html", {'round': contribution_round})
 
     if request.method == 'POST':
         selection = request.POST.get('selection')
@@ -41,6 +48,7 @@ def view(request):
     subscription = member.subscription_future or member.subscription_current
     if not subscription:
         return redirect('subscription-landing')
+
     contributions = subscription.contributions.all()
     if not contributions:
         return redirect('jcr:select')

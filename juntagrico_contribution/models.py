@@ -1,9 +1,12 @@
+from decimal import Decimal
 from functools import cached_property
 
 from django.db import models
 from django.db.models import Count, FloatField, Avg, Sum
+from django.db.models.fields.related_descriptors import RelatedManager
 from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
+from juntagrico.entity import SimpleStateModel, SimpleStateModelQuerySet
 from juntagrico.entity.subs import Subscription, SubscriptionPart
 from juntagrico.entity.subtypes import SubscriptionType
 
@@ -25,10 +28,20 @@ class ContributionRound(models.Model):
     other_amount = models.BooleanField(_('Anderen Beitrag erlauben'), default=False,
                                        help_text=_('Erlaubt dem Mitglied einen eigenen, höhren Betrag anzugeben'))
     status = models.CharField(_('Status'), max_length=1, choices=DISPLAY_OPTIONS, default=STATUS_DRAFT)
+    creation_cutoff = models.DateField(
+        _('Nur Neubestellungen ab'), blank=True, null=True,
+        help_text=_('Nur Neubestellungen ab diesem Datum nehmen an der Beitragsrunde teil.')
+    )
+    cancellation_cutoff = models.DateField(
+        _('Kündigungsfrist'), blank=True, null=True,
+        help_text=_('Wer erst nach diesem Datum gekündigt hat, nimmt noch an der Beitragsrunde teil.')
+    )
 
     @cached_property
     def progress(self):
-        total = Subscription.objects.filter(deactivation_date=None).count()
+        total = self.subscriptions().count()
+        if total == 0:
+            return 100
         submitted = self.selections.count()
         return submitted / total * 100
 
@@ -50,24 +63,37 @@ class ContributionRound(models.Model):
 
     @cached_property
     def total_selected(self):
-        return self.selections.aggregate(total=Sum('price')).get('total')
+        return self.selections.aggregate(total=Sum('price')).get('total') or Decimal(0)
 
     @cached_property
     def total_unselected(self):
         return self.subscription_parts().exclude(subscription__contributions__round=self).aggregate(
             total=Sum('type__price')
-        ).get('total')
+        ).get('total') or Decimal(0)
 
     @property
     def current_total(self):
         return self.total_selected + self.total_unselected
 
+    def filter_parts(self, parts: SimpleStateModelQuerySet):
+        parts = parts.filter(deactivation_date=None)
+        if self.cancellation_cutoff:
+            parts = parts.exclude(cancellation_date__lte=self.cancellation_cutoff)
+        if self.creation_cutoff:
+            parts = parts.filter(creation_date__gte=self.creation_cutoff)
+        return parts
+
     def subscription_parts(self):
         """
         :return: all subscription parts that are subject to this round
         """
-        # TODO: Refine this: exclude parts that were cancelled before a certain date
-        return SubscriptionPart.objects.filter(deactivation_date=None)
+        return self.filter_parts(SubscriptionPart.objects)
+
+    def subscriptions(self):
+        """
+        :return: all subscriptions that are subject to this round
+        """
+        return self.filter_parts(Subscription.objects)
 
     def __str__(self):
         return self.name
@@ -123,18 +149,21 @@ class ContributionSelection(models.Model):
 
     objects = ContributionSelectionQuerySet.as_manager()
 
+    def get_parts(self):
+        return self.round.filter_parts(self.subscription.parts)
+
     def get_parts_with_prices(self):
         if self.subscription is not None:
             prices = self.selected_option.conditions.values_list('subscription_type', 'price')
             prices = {k: v for k, v in prices}
-            for part in self.subscription.active_and_future_parts:
+            for part in self.get_parts():
                 yield part, prices.get(part.type.id, part.type.price)
 
     def get_total_price(self):
         return sum([price for _, price in self.get_parts_with_prices()])
 
     def get_nominal_price(self):
-        return self.subscription.active_and_future_parts.aggregate(total=Sum('type__price')).get('total')
+        return self.get_parts().aggregate(total=Sum('type__price')).get('total')
 
     class Meta:
         verbose_name = _('Beitrag')
