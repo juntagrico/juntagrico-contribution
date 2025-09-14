@@ -3,10 +3,9 @@ from functools import cached_property
 
 from django.db import models
 from django.db.models import Count, FloatField, Avg, Sum
-from django.db.models.fields.related_descriptors import RelatedManager
 from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
-from juntagrico.entity import SimpleStateModel, SimpleStateModelQuerySet
+from juntagrico.entity import SimpleStateModelQuerySet
 from juntagrico.entity.subs import Subscription, SubscriptionPart
 from juntagrico.entity.subtypes import SubscriptionType
 
