@@ -4,7 +4,7 @@
 <div class="col-md-4">
     <div class="jcr-option jcr-option-{{ option.id }}">
         <h4 class="custom-control custom-radio jcr-option-title">
-            <input type="radio" id="option{{ option.id }}" name="selection" value="{{ option.id }}" class="custom-control-input">
+            <input type="radio" id="option{{ option.id }}" name="selection" value="{{ option.id }}" class="custom-control-input"{% if form.selection.value == option.id %} checked{% endif %}>
             <label class="custom-control-label" for="option{{ option.id }}">{{ option.name }}</label>
         </h4>
         <p>{{ option.description }}</p>

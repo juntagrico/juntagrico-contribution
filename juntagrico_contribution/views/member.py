@@ -1,9 +1,9 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from juntagrico.view_decorators import highlighted_menu
 
-from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
-from juntagrico_contribution.utils import SubscriptionInRound
+from juntagrico_contribution.forms import ContributionSelectionForm
+from juntagrico_contribution.models import ContributionRound
 
 
 @login_required
@@ -23,22 +23,16 @@ def select(request):
         return render(request, "jcr/not_applicable.html", {'round': contribution_round})
 
     if request.method == 'POST':
-        selection = request.POST.get('selection')
-        if selection == 'other':
-            selected = None
-            price = request.POST.get('other_amount')
-        else:
-            selected = get_object_or_404(ContributionOption, pk=selection)
-            # TODO: populate price automatically in pre-save
-            price = ContributionSelection(subscription=subscription, selected_option=selected).get_total_price()
-        ContributionSelection.objects.update_or_create(defaults=dict(
-            selected_option=selected, price=price, contact_me=bool(request.POST.get('contact_me'))
-        ), subscription=subscription, round=contribution_round)
-        return redirect('jcr:view')
+        form = ContributionSelectionForm(contribution_round, subscription, request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('jcr:view')
+    else:
+        form = ContributionSelectionForm(contribution_round, subscription)
 
     return render(request, "jcr/select.html", {
         'round': contribution_round,
-        'subscription_in_round': SubscriptionInRound(subscription, contribution_round),
+        'form': form,
     })
 
 @login_required

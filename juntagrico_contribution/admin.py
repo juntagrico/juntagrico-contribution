@@ -1,4 +1,5 @@
 from adminsortable2.admin import SortableStackedInline, SortableAdminBase
+from django import forms
 from django.contrib import admin
 from juntagrico.admins import BaseAdmin
 from django.utils.translation import gettext_lazy as _
@@ -13,12 +14,19 @@ class OptionInline(SortableStackedInline):
     extra = 1
 
 
+class RoundAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['minimum_amount'].queryset = self.instance.options.all()
+
+
 class RoundAdmin(SortableAdminBase, BaseAdmin):
+    form = RoundAdminForm
     list_display = ['name', 'status', 'target_amount', 'other_amount']
     fieldsets = [
         (
             None,
-            {'fields': ['status', 'name', 'description', 'target_amount', 'other_amount']},
+            {'fields': ['status', 'name', 'description', 'target_amount', 'other_amount', 'minimum_amount']},
         ),
         (
             _(f'{Config.vocabulary("subscription")}-Filter'),

@@ -25,7 +25,11 @@ class ContributionRound(models.Model):
     description = models.TextField(_('Beschreibung'), default='', blank=True)
     target_amount = models.DecimalField(_('Zielbetrag'), max_digits=9, decimal_places=2)
     other_amount = models.BooleanField(_('Anderen Beitrag erlauben'), default=False,
-                                       help_text=_('Erlaubt dem Mitglied einen eigenen, höhren Betrag anzugeben'))
+                                       help_text=_('Erlaubt dem Mitglied einen eigenen, höheren Betrag anzugeben'))
+    minimum_amount = models.ForeignKey(
+        'ContributionOption', related_name='is_minimum_for', on_delete=models.PROTECT, null=True, blank=True,
+        verbose_name=_('Mindestbetrag'), help_text=_('Anderer Betrag muss höher sein als diese Option')
+    )
     status = models.CharField(_('Status'), max_length=1, choices=DISPLAY_OPTIONS, default=STATUS_DRAFT)
     creation_cutoff = models.DateField(
         _('Nur Neubestellungen ab'), blank=True, null=True,
@@ -113,6 +117,11 @@ class ContributionOption(models.Model):
     def __str__(self):
         return self.name
 
+    def price_for(self, subscription):
+        return ContributionSelection(
+            round=self.round, subscription=subscription, selected_option=self
+        ).get_total_price()
+
     class Meta:
         verbose_name = _('Beitrags-Option')
         verbose_name_plural = _('Beitrags-Optionen')
@@ -163,6 +172,11 @@ class ContributionSelection(models.Model):
 
     def get_nominal_price(self):
         return self.get_parts().aggregate(total=Sum('type__price')).get('total')
+
+    def save(self, *args, **kwargs):
+        if self.price is None:
+            self.price = self.get_total_price()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('Beitrag')

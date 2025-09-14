@@ -16,22 +16,27 @@
     <form id="jcr_selection_form" method="POST">
         {% csrf_token %}
         <div class="row">
-            {% for selection in subscription_in_round.get_options %}
+            {% for selection in form.get_selections %}
                 {% include 'jcr/snippets/option.html' with option=selection.selected_option %}
             {% endfor %}
             {% if round.other_amount %}
                 <div class="col-md-4">
                     <div class="jcr-option jcr-option-custom">
                         <h4 class="custom-control custom-radio jcr-option-title">
-                            <input type="radio" id="option_other" name="selection" value="other" class="custom-control-input">
+                            <input type="radio" id="option_other" name="selection" value="other" class="custom-control-input"{% if form.selection.value == 'other' %} checked{% endif %}>
                             <label class="custom-control-label" for="option_other">
                                 {% trans "Anderer Betrag" %}
                             </label>
                         </h4>
                         <div class="form-group">
                             <label for="other_amount">{% blocktrans %}Beitrag in {{ c_currency }}{% endblocktrans %}</label>
-                            <input type="number" class="form-control" id="other_amount" name="other_amount"
-                                   aria-describedby="other_amount_help">
+                            <input type="number" class="form-control{% if form.other_amount.errors %} is-invalid{% endif %}" id="other_amount" name="other_amount"
+                                   aria-describedby="other_amount_help" value="{{ form.other_amount.value }}">
+                            {% if form.other_amount.errors %}
+                                {% for error in form.other_amount.errors %}
+                                    <p id="error_{{ forloop.counter }}_{{ form.other_amount.auto_id }}" class="invalid-feedback"><strong>{{ error }}</strong></p>
+                                {% endfor %}
+                            {% endif %}
                             <small id="other_amount_help" class="form-text text-muted">
                                 {% trans "Wähle einen anderen, höheren Beitrag" %}
                             </small>
