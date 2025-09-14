@@ -7,7 +7,7 @@ class SubscriptionInRound:
         self.round = contribution_round
 
     def get_options(self):
-        for option in self.round.options.all():
+        for option in self.round.options.filter(visible=True):
             yield ContributionSelection(subscription=self.subscription, selected_option=option)
 
     class Meta:

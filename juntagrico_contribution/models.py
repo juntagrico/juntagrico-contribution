@@ -81,6 +81,8 @@ class ContributionOption(models.Model):
     round = models.ForeignKey(ContributionRound, on_delete=models.CASCADE, related_name='options')
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Name dieser Option'))
+    visible = models.BooleanField(_('Sichtbar'), blank=True, default=True,
+                                  help_text=_('Diese Option dem Mitglied anzeigen?'))
     sort_order = models.PositiveIntegerField(_('Reihenfolge'), default=0, blank=False, null=False)
 
     def __str__(self):

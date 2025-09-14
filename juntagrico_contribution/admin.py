@@ -23,8 +23,8 @@ class ConditionInline(admin.TabularInline):
 
 class OptionAdmin(BaseAdmin):
     exclude = ['sort_order']
-    list_display = ['name', 'round']
-    list_filter = ['round']
+    list_display = ['name', 'round', 'visible']
+    list_filter = ['round', 'visible']
     inlines = [ConditionInline]
 
 
