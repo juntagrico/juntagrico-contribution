@@ -78,12 +78,16 @@ class ContributionRound(models.Model):
     def current_total(self):
         return self.total_selected + self.total_unselected
 
-    def filter_parts(self, parts: SimpleStateModelQuerySet):
+    def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)
         if self.cancellation_cutoff:
             parts = parts.exclude(cancellation_date__lte=self.cancellation_cutoff)
         if self.creation_cutoff:
             parts = parts.filter(creation_date__gte=self.creation_cutoff)
+        return parts
+
+    def filter_parts(self, parts: SimpleStateModelQuerySet):
+        parts = self._filter_by_date(parts).filter(type__trial_days=0)
         return parts
 
     def subscription_parts(self):
@@ -96,7 +100,7 @@ class ContributionRound(models.Model):
         """
         :return: all subscriptions that are subject to this round
         """
-        return self.filter_parts(Subscription.objects)
+        return self._filter_by_date(Subscription.objects).filter(parts__in=self.subscription_parts()).distinct()
 
     def __str__(self):
         return self.name
