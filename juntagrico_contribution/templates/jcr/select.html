@@ -31,7 +31,8 @@
                         <div class="form-group">
                             <label for="other_amount">{% blocktrans %}Beitrag in {{ c_currency }}{% endblocktrans %}</label>
                             <input type="number" class="form-control{% if form.other_amount.errors %} is-invalid{% endif %}" id="other_amount" name="other_amount"
-                                   aria-describedby="other_amount_help" value="{{ form.other_amount.value }}">
+                                   aria-describedby="other_amount_help" value="{{ form.other_amount.value }}"
+                                   onclick="$('#option_other').click()">
                             {% if form.other_amount.errors %}
                                 {% for error in form.other_amount.errors %}
                                     <p id="error_{{ forloop.counter }}_{{ form.other_amount.auto_id }}" class="invalid-feedback"><strong>{{ error }}</strong></p>
@@ -49,7 +50,7 @@
             <div class="col-md-12">
                 <div class="form-group">
                     <span class="switch">
-                        <input type="checkbox" class="switch" id="contact_me" name="contact_me"/>
+                        <input type="checkbox" class="switch" id="contact_me" name="contact_me" {% if form.contact_me.value %} checked{% endif %}/>
                         <label for="contact_me">
                             {% trans "Bitte kontaktiert mich, falls es nicht reicht." %}
                         </label>

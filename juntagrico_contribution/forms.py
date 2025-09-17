@@ -38,10 +38,15 @@ class ContributionSelectionForm(forms.Form):
     def __init__(self, contribution_round, subscription, *args, **kwargs):
         self.contribution_round = contribution_round
         self.subscription = subscription
+        self.contribution = self.contribution_round.selections.filter(subscription=self.subscription).first()
         super().__init__(*args, **kwargs)
         self.fields['selection'].choices = self.get_choices()
         if self.contribution_round.other_amount:
-            self.fields['other_amount'] = forms.DecimalField(decimal_places=2, max_digits=9, required=False)
+            initial = self.contribution.price if self.contribution else None
+            self.fields['other_amount'] = forms.DecimalField(decimal_places=2, max_digits=9, required=False, initial=initial)
+        if self.contribution:
+            self.fields['selection'].initial = self.contribution.selected_option.pk if self.contribution.selected_option else 'other'
+            self.fields['contact_me'].initial = self.contribution.contact_me
 
     def get_choices(self):
         for option in self.visible_options():
@@ -50,7 +55,9 @@ class ContributionSelectionForm(forms.Form):
             yield 'other', _('Anderer Betrag')
 
     def visible_options(self):
-        return self.contribution_round.options.filter(visible=True)
+        for option in self.contribution_round.options.filter(visible=True):
+            if self.contribution is None or option.price_for(self.subscription) >= self.contribution.price:
+                yield option
 
     def get_selections(self):
         for option in self.visible_options():
@@ -67,12 +74,15 @@ class ContributionSelectionForm(forms.Form):
             other_amount = cleaned_data.get('other_amount')
             if other_amount is None:
                 raise forms.ValidationError({'other_amount': _('Gib einen Betrag ein')})
+            minimum_amount = 0
             if self.contribution_round.minimum_amount:
                 minimum_amount = self.contribution_round.minimum_amount.price_for(self.subscription)
-                if other_amount < minimum_amount:
-                    raise forms.ValidationError({'other_amount': _('Der Mindestbetrag ist {0} {1}').format(
-                        minimum_amount, Config.currency()
-                    )})
+            if self.contribution:
+                minimum_amount = max(minimum_amount, self.contribution.price)
+            if other_amount < minimum_amount:
+                raise forms.ValidationError({'other_amount': _('Der Mindestbetrag ist {0} {1}').format(
+                    minimum_amount, Config.currency()
+                )})
 
     def save(self):
         selection = self.cleaned_data['selection']
