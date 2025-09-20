@@ -111,9 +111,14 @@ class ContributionRound(models.Model):
 
 
 class ContributionOption(models.Model):
-    round = models.ForeignKey(ContributionRound, on_delete=models.CASCADE, related_name='options')
+    round = models.ForeignKey(ContributionRound, on_delete=models.CASCADE, related_name='options',
+                              verbose_name=_('Beitragsrunde'))
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Name dieser Option'))
+    multiplier = models.FloatField(
+        _('Multiplikator'), default=1,
+        help_text=_('Wenn kein expliziter Preis angegeben wird, wird der Preis vom Typ mit diesem Faktor multipliziert.')
+    )
     visible = models.BooleanField(_('Sichtbar'), blank=True, default=True,
                                   help_text=_('Diese Option dem Mitglied anzeigen?'))
     sort_order = models.PositiveIntegerField(_('Reihenfolge'), default=0, blank=False, null=False)
@@ -125,6 +130,14 @@ class ContributionOption(models.Model):
         return ContributionSelection(
             round=self.round, subscription=subscription, selected_option=self
         ).get_total_price()
+
+    @cached_property
+    def price_by_type(self):
+        explicit_prices = {k: v for k, v in self.conditions.values_list('subscription_type', 'price')}
+        return {
+            sub_type: explicit_prices.get(sub_type.id, sub_type.price * Decimal(self.multiplier))
+            for sub_type in SubscriptionType.objects.all()
+        }
 
     class Meta:
         verbose_name = _('Beitrags-Option')
@@ -166,10 +179,9 @@ class ContributionSelection(models.Model):
 
     def get_parts_with_prices(self):
         if self.subscription is not None:
-            prices = self.selected_option.conditions.values_list('subscription_type', 'price')
-            prices = {k: v for k, v in prices}
+            prices_by_type = self.selected_option.price_by_type
             for part in self.get_parts():
-                yield part, prices.get(part.type.id, part.type.price)
+                yield part, prices_by_type.get(part.type, 0)
 
     def get_total_price(self):
         return sum([price for _, price in self.get_parts_with_prices()])

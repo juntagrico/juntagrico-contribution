@@ -8,7 +8,7 @@
             <label class="custom-control-label" for="option{{ option.id }}">{{ option.name }}</label>
         </h4>
         <p>{{ option.description }}</p>
-        <strong>{{ c_currency }} {{ selection.get_total_price }}</strong>
+        <strong>{{ c_currency }} {{ selection.get_total_price|floatformat:2 }}</strong>
 
         <div class="mb-2">
             <a class="jcr-details collapsed" data-toggle="collapse" href="#price_list{{ option.id }}">
@@ -20,7 +20,7 @@
                 <ul class="nav flex-column">
                     {% for part, price in selection.get_parts_with_prices %}
                         <li>
-                            {{ part }}: {{ c_currency }} {{ price }}
+                            {{ part }}: {{ c_currency }} {{ price|floatformat:2 }}
                         </li>
                     {% endfor %}
                 </ul>
