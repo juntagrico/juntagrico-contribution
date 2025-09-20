@@ -38,6 +38,7 @@ def select(request):
         'form': form,
     })
 
+
 @login_required
 @highlighted_menu('contribution')
 def view(request):

@@ -149,6 +149,7 @@ class ContributionCondition(models.Model):
             models.UniqueConstraint(fields=['option', 'subscription_type'], name='unique_option_type'),
         ]
 
+
 class ContributionSelectionQuerySet(models.QuerySet):
     def average_price(self):
         return self.aggregate(average_price=Avg('price')).get('average_price')
