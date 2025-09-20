@@ -12,6 +12,7 @@
 
 {% block content %}
     {% crispy round_form %}
+    {% include 'juntagrico/manage/member/snippets/toggle_buttons.html' with co_members=True %}
     {{ block.super }}
 {% endblock %}
 
@@ -22,9 +23,6 @@
             <tr>
                 {% block list_head %}
                     <th class="filter">
-                        {% vocabulary "subscription" %}
-                    </th>
-                    <th class="filter">
                         {% trans "Auswahl" %}
                     </th>
                     <th class="filter">
@@ -32,6 +30,9 @@
                     </th>
                     <th class="filter">
                         {% trans "Kann kontaktiert werden" %}
+                    </th>
+                    <th class="filter">
+                        {% vocabulary "subscription" %}
                     </th>
                     <th class="filter">
                         {% trans "Inhalt" %}
@@ -49,9 +50,6 @@
             <tr>
                 {% block list_foot %}
                     <th>
-                        {% vocabulary "subscription" %}
-                    </th>
-                    <th>
                         {% trans "Auswahl" %}
                     </th>
                     <th>
@@ -59,6 +57,9 @@
                     </th>
                     <th>
                         {% trans "Kann kontaktiert werden" %}
+                    </th>
+                    <th>
+                        {% vocabulary "subscription" %}
                     </th>
                     <th>
                         {% trans "Inhalt" %}
@@ -73,38 +74,58 @@
             </tr>
         </tfoot>
         <tbody>
-            {% for selection in object_list %}
-                {% with subscription=selection.subscription %}
-                    {% block list_entry %}
-                        <tr>
+            {% for subscription in object_list %}
+                {% block list_entry %}
+                    <tr>
+                        {% if subscription.current_contribution %}
+                            {% with selection=subscription.current_contribution.0 %}
+                                <td>
+                                    {% if perms.juntagrico_contribution.view_contributionselection or perms.juntagrico_contribution.change_contributionselection %}
+                                        <a href="{% url 'admin:juntagrico_contribution_contributionselection_change' selection.pk %}">
+                                            {{ selection.selected_option|default:_('Anderer Betrag') }}
+                                        </a>
+                                    {% else %}
+                                        <span>
+                                            {{ selection.selected_option|default:_('Anderer Betrag') }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ selection.price|floatformat:'2g' }} ({{ selection.get_nominal_price|floatformat:'2g' }})
+                                </td>
+                                <td>
+                                    {{ selection.contact_me|yesno:_("Ja,Nein") }}
+                                </td>
+                            {% endwith %}
+                        {% else %}
                             <td>
-                                {% include 'juntagrico/manage/subscription/snippets/display_linked.html' %}
+                                {% trans "Kein Gebot" %}
                             </td>
                             <td>
-                                {{ selection.selected_option|default:_('Anderer Betrag') }}
+                                -
                             </td>
                             <td>
-                                {{ selection.price|floatformat:'2g' }} ({{ selection.get_nominal_price|floatformat:'2g' }})
+                                -
                             </td>
-                            <td>
-                                {{ selection.contact_me|yesno:_("Ja,Nein") }}
-                            </td>
-                            <td>
-                                {% for item in subscription.content_strings %}
-                                    <div>
-                                        {{ item }}
-                                    </div>
-                                {% endfor %}
-                            </td>
-                            <td>
-                                {{ subscription.activation_date|date:"Y-m-d" }}
-                            </td>
-                            <td>
-                                {% include 'juntagrico/manage/subscription/snippets/members_linked.html' %}
-                            </td>
-                        </tr>
-                    {% endblock %}
-                {% endwith %}
+                        {% endif %}
+                        <td>
+                            {% include 'juntagrico/manage/subscription/snippets/display_linked.html' %}
+                        </td>
+                        <td>
+                            {% for item in subscription.content_strings %}
+                                <div>
+                                    {{ item }}
+                                </div>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {{ subscription.activation_date|date:"Y-m-d" }}
+                        </td>
+                        <td>
+                            {% include 'juntagrico/manage/subscription/snippets/members_linked.html' %}
+                        </td>
+                    </tr>
+                {% endblock %}
             {% endfor %}
         </tbody>
     </table>
