@@ -141,4 +141,29 @@
     config.order = [
         [3, 'desc'],
     ]
+    {# show total price of selected #}
+    {% get_current_language as current_language %}
+    number_formater = new Intl.NumberFormat("{{ current_language }}", { style: "currency", currency: "{% config 'currency' %}" })
+    config.footerCallback = function (row, data, start, end, display) {
+        let api = this.api();
+
+        // Remove the formatting to get float data for summation
+        let floatVal = function (i) {
+            if (typeof(i) === 'number') {
+                return i;
+            }
+            if (typeof(i) === 'string') {
+                let amount = i.split('(')[0].replace(/&nbsp;/g, "").split(dt_language.decimal).join('.')
+                return parseFloat(amount) || 0
+            }
+            return 0;
+        };
+
+        // Total
+        let total = api
+            .column(1, { search: 'applied' })
+            .data()
+            .reduce((a, b) => floatVal(a) + floatVal(b), 0);
+        api.column(1).footer().innerHTML = '<strong>{% trans "Total:" %}<br>' + number_formater.format(total) + '</strong>';
+    }
 {% endblock %}
