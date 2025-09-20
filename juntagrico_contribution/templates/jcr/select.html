@@ -13,6 +13,17 @@
         </p>
     {% endif %}
     {% config "currency" as c_currency %}
+    {% if form.contribution %}
+        <div class="row">
+            <div class="col-12">
+                <p>
+                    {% blocktrans trimmed with contribution=form.contribution.price %}
+                        Bisheriges Gebot: <strong>{{ c_currency }} {{ contribution }}</strong>
+                    {% endblocktrans %}
+                </p>
+            </div>
+        </div>
+    {% endif %}
     <form id="jcr_selection_form" method="POST">
         {% csrf_token %}
         <div class="row">
