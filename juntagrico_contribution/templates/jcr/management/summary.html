@@ -17,27 +17,33 @@
             Wie viele der {{ v_subscription_pl }} haben schon geboten?
         {% endblocktrans %}
         <div class="progress">
-            <div class="progress-bar" role="progressbar" style="width: {{ round.progress|floatformat:0 }}%;"
-                 aria-valuenow="{{ round.progress }}" aria-valuemin="0" aria-valuemax="100">
-                {{ round.progress|floatformat:-1 }}%
-            </div>
+            {% with progress=round.submitted|percent:round.subscriptions.count %}
+                <div class="progress-bar" role="progressbar" style="width: {{ progress|floatformat:0 }}%;"
+                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ progress|floatformat:-1 }}%
+                </div>
+            {% endwith %}
         </div>
 
         {% blocktrans %}Welche Option wurde gewählt?{% endblocktrans %}
         <div class="progress" style="height: 2em;">
-            {% for option in round.options_with_count %}
-                <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'danger' 'secondary' 'dark' %}" role="progressbar"
-                     style="width: {{ option.selection_count }}00%; line-height: 1;"
-                     aria-valuenow="{{ option.selection_count }}" aria-valuemin="0">
-                    {{ option }}<br>{{ option.selection_percentage|floatformat:-1 }}%
-                </div>
+            {% for option in round.options.all %}
+                {% with selection_count=option.valid_selections.count %}
+                    <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'danger' 'secondary' 'dark' %}" role="progressbar"
+                         style="width: {{ selection_count }}00%; line-height: 1;"
+                         aria-valuenow="{{ selection_count }}" aria-valuemin="0">
+                        {{ option }}<br>{{ selection_count|percent:round.submitted|floatformat:-1 }}%
+                    </div>
+                {% endwith %}
             {% endfor %}
             {% if round.other_amount %}
-                <div class="progress-bar bg-light text-dark" role="progressbar"
-                     style="width: {{ round.other_amounts.count }}00%; line-height: 1;"
-                     aria-valuenow="{{ round.other_amounts.count }}" aria-valuemin="0">
-                    {% trans "Anderer Betrag" %}<br>{{ round.other_amounts_percentage|floatformat:-1 }}%
-                </div>
+                {% with other_amount_count=round.other_amounts.count %}
+                    <div class="progress-bar bg-light text-dark" role="progressbar"
+                         style="width: {{ other_amount_count }}00%; line-height: 1;"
+                         aria-valuenow="{{ other_amount_count }}" aria-valuemin="0">
+                        {% trans "Anderer Betrag" %}<br>{{ other_amount_count|percent:round.submitted|floatformat:-1 }}%
+                    </div>
+                {% endwith %}
             {% endif %}
         </div>
 

@@ -2,8 +2,7 @@ from decimal import Decimal
 from functools import cached_property
 
 from django.db import models
-from django.db.models import Count, FloatField, Avg, Sum
-from django.db.models.functions import Cast
+from django.db.models import Avg, Sum
 from django.utils.translation import gettext_lazy as _
 from juntagrico.entity import SimpleStateModelQuerySet
 from juntagrico.entity.subs import Subscription, SubscriptionPart
@@ -40,33 +39,22 @@ class ContributionRound(models.Model):
         help_text=_('Wer erst nach diesem Datum gekündigt hat, nimmt noch an der Beitragsrunde teil.')
     )
 
-    @cached_property
-    def progress(self):
-        total = self.subscriptions().count()
-        if total == 0:
-            return 100
-        submitted = self.selections.count()
-        return submitted / total * 100
+    def valid_selections(self):
+        return self.selections.filter(subscription__in=self.subscriptions())
 
-    def options_with_count(self):
-        submitted = self.selections.count()
-        return self.options.annotate(
-            selection_count=Count('selections'),
-            selection_percentage=Cast(Count('selections'), output_field=FloatField()) / submitted * 100,
-        )
+    @cached_property
+    def submitted(self):
+        return self.valid_selections().count()
 
     @cached_property
     def other_amounts(self):
-        return self.selections.filter(selected_option=None)
-
-    def other_amounts_percentage(self):
-        count = self.other_amounts.count()
-        submitted = self.selections.count()
-        return count / submitted * 100
+        return self.valid_selections().filter(selected_option=None)
 
     @cached_property
     def total_selected(self):
-        return self.selections.aggregate(total=Sum('price')).get('total') or Decimal(0)
+        return self.valid_selections().aggregate(
+            total=Sum('price')
+        ).get('total') or Decimal(0)
 
     @cached_property
     def total_unselected(self):
@@ -125,6 +113,9 @@ class ContributionOption(models.Model):
 
     def __str__(self):
         return self.name
+
+    def valid_selections(self):
+        return self.selections.filter(subscription__in=self.round.subscriptions())
 
     def price_for(self, subscription):
         return ContributionSelection(
