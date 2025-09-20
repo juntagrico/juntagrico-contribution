@@ -18,6 +18,12 @@ def select(request):
     contribution_round = ContributionRound.objects.filter(status=ContributionRound.STATUS_ACTIVE).first()
     if not contribution_round.subscriptions().filter(pk=subscription.pk).exists():
         return render(request, "jcr/not_applicable.html", {'round': contribution_round})
+    # check if user is primary member
+    if subscription.primary_member != member:
+        return render(request, "jcr/not_primary_member.html", {
+            'round': contribution_round,
+            'subscription': subscription,
+        })
 
     if request.method == 'POST':
         form = ContributionSelectionForm(contribution_round, subscription, request.POST)
