@@ -171,7 +171,7 @@ class ContributionSelection(models.Model):
     price = models.DecimalField(_('Betrag'), max_digits=9, decimal_places=2)
     contact_me = models.BooleanField(_('Kontaktiert mich, falls es nicht reicht'),
                                      default=False, null=True, blank=True,)
-
+    modification_date = models.DateField(_('Zuletzt geändert'), auto_now=True)
     objects = ContributionSelectionQuerySet.as_manager()
 
     def get_parts(self):

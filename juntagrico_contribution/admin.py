@@ -49,8 +49,9 @@ class OptionAdmin(BaseAdmin):
 
 
 class SelectionAdmin(BaseAdmin):
-    list_display = ['round', 'subscription', 'selected_option', 'price', 'contact_me']
-    list_filter = ['round']
+    list_display = ['round', 'subscription', 'selected_option', 'price', 'contact_me', 'modification_date']
+    list_filter = ['round', 'modification_date']
+    readonly_fields = ['modification_date']
 
 
 admin.site.register(ContributionRound, RoundAdmin)

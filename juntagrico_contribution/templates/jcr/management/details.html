@@ -32,13 +32,13 @@
                         {% trans "Kann kontaktiert werden" %}
                     </th>
                     <th class="filter">
+                        {% trans "Zuletzt geändert am" %}
+                    </th>
+                    <th class="filter">
                         {% vocabulary "subscription" %}
                     </th>
                     <th class="filter">
                         {% trans "Inhalt" %}
-                    </th>
-                    <th class="filter">
-                        {% trans "Aktivierungsdatum" %}
                     </th>
                     <th class="filter">
                         {% trans "Kontakt" %}
@@ -59,13 +59,13 @@
                         {% trans "Kann kontaktiert werden" %}
                     </th>
                     <th>
+                        {% trans "Zuletzt geändert am" %}
+                    </th>
+                    <th>
                         {% vocabulary "subscription" %}
                     </th>
                     <th>
                         {% trans "Inhalt" %}
-                    </th>
-                    <th>
-                        {% trans "Aktivierungsdatum" %}
                     </th>
                     <th>
                         {% trans "Kontakt" %}
@@ -96,10 +96,16 @@
                                 <td>
                                     {{ selection.contact_me|yesno:_("Ja,Nein") }}
                                 </td>
+                                <td>
+                                    {{ selection.modification_date|date:"Y-m-d" }}
+                                </td>
                             {% endwith %}
                         {% else %}
                             <td>
                                 {% trans "Kein Gebot" %}
+                            </td>
+                            <td>
+                                -
                             </td>
                             <td>
                                 -
@@ -119,9 +125,6 @@
                             {% endfor %}
                         </td>
                         <td>
-                            {{ subscription.activation_date|date:"Y-m-d" }}
-                        </td>
-                        <td>
                             {% include 'juntagrico/manage/subscription/snippets/members_linked.html' %}
                         </td>
                     </tr>
@@ -129,4 +132,13 @@
             {% endfor %}
         </tbody>
     </table>
+{% endblock %}
+
+
+{% block datatable_constructor %}
+    {{ block.super }}
+    {# sort by date #}
+    config.order = [
+        [3, 'desc'],
+    ]
 {% endblock %}
