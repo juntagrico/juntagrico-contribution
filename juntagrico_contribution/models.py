@@ -90,6 +90,9 @@ class ContributionRound(models.Model):
         """
         return self._filter_by_date(Subscription.objects).filter(parts__in=self.subscription_parts()).distinct()
 
+    def can_activate(self):
+        return not ContributionRound.objects.exclude(pk=self.pk).filter(status=ContributionRound.STATUS_ACTIVE).exists()
+
     def __str__(self):
         return self.name
 

@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -101,3 +102,50 @@ class ContributionSelectionForm(forms.Form):
             subscription=self.subscription,
             round=self.contribution_round
         )
+
+
+class BillTransferForm(forms.Form):
+    business_year = forms.ModelChoiceField(queryset=None, empty_label=None, label=_('Geschäftsjahr'))
+    bill_item_type = forms.ModelChoiceField(queryset=None, required=False, label=_('Rechnungselement-Typ'))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.enabled = 'juntagrico_billing' in settings.INSTALLED_APPS
+        if self.enabled:
+            from juntagrico_billing.models import bill
+            self.fields["business_year"].queryset = bill.BusinessYear.objects.all()
+            self.fields["bill_item_type"].queryset = bill.BillItemType.objects.all()
+
+    def _make_description(self, contribution_round):
+        return _('Beitragsrunde {}').format(contribution_round.name)
+
+    def save(self, contribution_round):
+        failed = True
+        if self.enabled:
+            from juntagrico_billing.models.bill import Bill, BillItem
+            failed = []
+            for selection in contribution_round.valid_selections():
+                bill = Bill.objects.filter(
+                    member=selection.subscription.primary_member,
+                    business_year=self.cleaned_data['business_year'],
+                ).first()
+                if not bill:
+                    failed.append(selection.subscription.primary_member)
+                    continue
+                BillItem.objects.update_or_create(
+                    bill=bill,
+                    description=self._make_description(contribution_round),
+                    defaults={
+                        'custom_item_type': self.cleaned_data['bill_item_type'],
+                        'amount': selection.price - selection.get_nominal_price(),
+                    }
+                )
+        return failed
+
+    def delete(self, contribution_round):
+        if self.enabled:
+            from juntagrico_billing.models.bill import BillItem
+            BillItem.objects.filter(
+                description=self._make_description(contribution_round),
+                bill__business_year=self.cleaned_data['business_year'],
+            ).delete()

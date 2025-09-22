@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load juntagrico.config %}
 {% block extend %}
-    {% if perms.juntagrico.can_view_contributionrounds %}
+    {% if perms.juntagrico_contribution.view_contributionround %}
         <li class="nav-item">
             <a class="nav-link" data-toggle="collapse" href="#contribution">
                 {% trans "Beitragsrunden" %}

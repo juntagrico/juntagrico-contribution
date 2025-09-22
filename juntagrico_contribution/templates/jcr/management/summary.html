@@ -11,92 +11,170 @@
 {% endblock %}
 
 {% block content %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.level_tag == 'success' %}success{% else %}danger{% endif %}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
     {% config "currency" as c_currency %}
     <h4>Status</h4>
-        {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
-            Wie viele der {{ v_subscription_pl }} haben schon geboten?
-        {% endblocktrans %}
-        <div class="progress">
-            {% with progress=round.submitted|percent:round.subscriptions.count %}
-                <div class="progress-bar" role="progressbar" style="width: {{ progress|floatformat:0 }}%;"
-                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
-                    {{ progress|floatformat:-1 }}%
-                </div>
-            {% endwith %}
+    {% if round.status == round.STATUS_ACTIVE %}
+        <div class="alert alert-success">
+            <p>
+                {% blocktrans trimmed %}
+                    Beitragsrunde ist aktiv.
+                {% endblocktrans %}
+            </p>
+            <form action="{% url 'jcr:admin-status-set' round.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" name="status" value="D" class="btn btn-warning">
+                    {% trans "Pausieren" %}
+                </button>
+                <button type="submit" name="status" value="C" class="btn btn-danger">
+                    {% trans "Beitragsrunde abschliessen" %}
+                </button>
+            </form>
         </div>
-
-        {% blocktrans %}Welche Option wurde gewählt?{% endblocktrans %}
-        <div class="progress" style="height: 2em;">
-            {% for option in round.options.all %}
-                {% with selection_count=option.valid_selections.count %}
-                    <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'danger' 'secondary' 'dark' %}" role="progressbar"
-                         style="width: {{ selection_count }}00%; line-height: 1;"
-                         aria-valuenow="{{ selection_count }}" aria-valuemin="0">
-                        {{ option }}<br>{{ selection_count|percent:round.submitted|floatformat:-1 }}%
-                    </div>
-                {% endwith %}
-            {% endfor %}
-            {% if round.other_amount %}
-                {% with other_amount_count=round.other_amounts.count %}
-                    <div class="progress-bar bg-light text-dark" role="progressbar"
-                         style="width: {{ other_amount_count }}00%; line-height: 1;"
-                         aria-valuenow="{{ other_amount_count }}" aria-valuemin="0">
-                        {% trans "Anderer Betrag" %}<br>{{ other_amount_count|percent:round.submitted|floatformat:-1 }}%
-                    </div>
-                {% endwith %}
+    {% elif round.status == round.STATUS_DRAFT %}
+        <div class="alert alert-warning">
+            <p>
+                {% blocktrans trimmed %}
+                    Beitragsrunde ist nicht veröffentlicht.
+                {% endblocktrans %}
+            </p>
+            {% if round.can_activate %}
+                <form action="{% url 'jcr:admin-status-set' round.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="status" value="A" class="btn btn-primary">
+                        {% trans "Beitragsrunde aktivieren" %}
+                    </button>
+                </form>
             {% endif %}
         </div>
-
-        {% if round.other_amount %}
-            {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
-            <strong>{{ c_currency }} {{ round.other_amounts.average_price }}</strong>
+    {% elif round.status == round.STATUS_CLOSED %}
+        <div class="alert alert-info">
+            <p>
+                {% blocktrans trimmed %}
+                    Beitragsrunde geschlossen.
+                {% endblocktrans %}
+            </p>
+            <form action="{% url 'jcr:admin-status-set' round.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" name="status" value="A" class="btn btn-primary">
+                    {% trans "Beitragsrunde erneut aktivieren" %}
+                </button>
+            </form>
+        </div>
+        {% if bill_transfer_form.enabled %}
+            <p>
+                {% blocktrans trimmed %}
+                    Die Gebote können nun in die Rechnungen übertragen werden.
+                    Dafür müssen die Rechnungen schon generiert worden sein.
+                    Die Zuordnung zu einem Rechnungselement-Typ is optional.
+                {% endblocktrans %}
+            </p>
+            <form action="{% url 'jcr:admin-transfer-bill' round.id %}" method="POST">
+                {% csrf_token %}
+                {{ bill_transfer_form }}
+                <div>
+                    <button type="submit" class="btn btn-info">
+                        {% trans "Beiträge in Rechnungen übertragen" %}
+                    </button>
+                    <button type="submit" name="undo" value="1" class="btn btn-outline-danger">
+                        {% trans "Rückgängig machen" %}
+                    </button>
+                </div>
+            </form>
         {% endif %}
+    {% endif %}
 
-        <div class="mt-3">
-            <a href="{% url 'jcr:admin-details' %}?round={{ round.id }}" class="btn btn-primary">Gebote ansehen</a>
-        </div>
-    <h4>Bilanz</h4>
-        <p>
-            {% blocktrans %}Zielbetrag:{% endblocktrans %}
-            <strong>{{ c_currency }} {{ round.target_amount|floatformat:"2g" }}</strong>
-        </p>
-        <p>
-            {% blocktrans %}Summe aller Gebote:{% endblocktrans %}
-            <strong>
-                {{ c_currency }} {{ round.total_selected|floatformat:"2g" }}
-            </strong>
-        </p>
-        <p>
-            {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
-                {{ v_subscription_pl }} ohne Gebot:
-            {% endblocktrans %}
-            <strong>
-                {{ c_currency }} {{ round.total_unselected|floatformat:"2g" }}
-            </strong>
-        </p>
-        <p>
-            {% blocktrans %}Total:{% endblocktrans %}
-            <strong>
-                {{ c_currency }} {{ round.current_total|floatformat:"2g" }}
-                ({{ round.current_total|percent:round.target_amount|floatformat:-1 }}%)
-            </strong>
-        </p>
-        <div class="progress">
-            {% with percentage=round.total_selected|percent:round.target_amount %}
-                <div class="progress-bar bg-success" role="progressbar"
-                     style="width: {{ percentage|floatformat:0 }}%;"
-                     aria-valuenow="{{ round.total_selected|floatformat:0 }}"
-                     aria-valuemin="0">
-                    {{ percentage|floatformat:-1 }}%
+    <h4 class="mt-5">Fortschritt</h4>
+    {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
+        Wie viele der {{ v_subscription_pl }} haben schon geboten?
+    {% endblocktrans %}
+    <div class="progress">
+        {% with progress=round.submitted|percent:round.subscriptions.count %}
+            <div class="progress-bar" role="progressbar" style="width: {{ progress|floatformat:0 }}%;"
+                 aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                {{ progress|floatformat:-1 }}%
+            </div>
+        {% endwith %}
+    </div>
+
+    {% blocktrans %}Welche Option wurde gewählt?{% endblocktrans %}
+    <div class="progress" style="height: 2em;">
+        {% for option in round.options.all %}
+            {% with selection_count=option.valid_selections.count %}
+                <div class="progress-bar bg-{% cycle 'success' 'info' 'warning' 'danger' 'secondary' 'dark' %}" role="progressbar"
+                     style="width: {{ selection_count }}00%; line-height: 1;"
+                     aria-valuenow="{{ selection_count }}" aria-valuemin="0">
+                    {{ option }}<br>{{ selection_count|percent:round.submitted|floatformat:-1 }}%
                 </div>
             {% endwith %}
-            {% with percentage=round.total_unselected|percent:round.target_amount %}
-                <div class="progress-bar bg-info" role="progressbar"
-                     style="width: {{ percentage|floatformat:0 }}%;"
-                     aria-valuenow="{{ round.total_unselected|floatformat:0 }}"
-                     aria-valuemin="0">
-                    {{ percentage|floatformat:-1 }}%
+        {% endfor %}
+        {% if round.other_amount %}
+            {% with other_amount_count=round.other_amounts.count %}
+                <div class="progress-bar bg-light text-dark" role="progressbar"
+                     style="width: {{ other_amount_count }}00%; line-height: 1;"
+                     aria-valuenow="{{ other_amount_count }}" aria-valuemin="0">
+                    {% trans "Anderer Betrag" %}<br>{{ other_amount_count|percent:round.submitted|floatformat:-1 }}%
                 </div>
             {% endwith %}
-        </div>
+        {% endif %}
+    </div>
+
+    {% if round.other_amount %}
+        {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
+        <strong>{{ c_currency }} {{ round.other_amounts.average_price }}</strong>
+    {% endif %}
+
+    <div class="mt-3">
+        <a href="{% url 'jcr:admin-details' %}?round={{ round.id }}" class="btn btn-primary">Gebote ansehen</a>
+    </div>
+
+    <h4 class="mt-5">Bilanz</h4>
+    <p>
+        {% blocktrans %}Zielbetrag:{% endblocktrans %}
+        <strong>{{ c_currency }} {{ round.target_amount|floatformat:"2g" }}</strong>
+    </p>
+    <p>
+        {% blocktrans %}Summe aller Gebote:{% endblocktrans %}
+        <strong>
+            {{ c_currency }} {{ round.total_selected|floatformat:"2g" }}
+        </strong>
+    </p>
+    <p>
+        {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
+            {{ v_subscription_pl }} ohne Gebot:
+        {% endblocktrans %}
+        <strong>
+            {{ c_currency }} {{ round.total_unselected|floatformat:"2g" }}
+        </strong>
+    </p>
+    <p>
+        {% blocktrans %}Total:{% endblocktrans %}
+        <strong>
+            {{ c_currency }} {{ round.current_total|floatformat:"2g" }}
+            ({{ round.current_total|percent:round.target_amount|floatformat:-1 }}%)
+        </strong>
+    </p>
+    <div class="progress">
+        {% with percentage=round.total_selected|percent:round.target_amount %}
+            <div class="progress-bar bg-success" role="progressbar"
+                 style="width: {{ percentage|floatformat:0 }}%;"
+                 aria-valuenow="{{ round.total_selected|floatformat:0 }}"
+                 aria-valuemin="0">
+                {{ percentage|floatformat:-1 }}%
+            </div>
+        {% endwith %}
+        {% with percentage=round.total_unselected|percent:round.target_amount %}
+            <div class="progress-bar bg-info" role="progressbar"
+                 style="width: {{ percentage|floatformat:0 }}%;"
+                 aria-valuenow="{{ round.total_unselected|floatformat:0 }}"
+                 aria-valuemin="0">
+                {{ percentage|floatformat:-1 }}%
+            </div>
+        {% endwith %}
+    </div>
 {% endblock %}

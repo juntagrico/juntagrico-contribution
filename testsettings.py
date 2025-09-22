@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'adminsortable2',
     'juntagrico_contribution',
+    # 'juntagrico_billing',
     'juntagrico',
     'import_export',
     'impersonate',
