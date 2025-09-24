@@ -9,10 +9,20 @@
 {% block content %}
     {% config "currency" as c_currency %}
     {% for contribution in contributions %}
-        <strong>{{ contribution.round }}</strong>: {{ c_currency }} {{ contribution.price }}
-        {% if contribution.contact_me %}
-            <br>
-            {% trans "Danke, dass wir dich kontaktieren dürfen, falls es nicht reichen sollte." %}
+        <h4>{{ contribution.round }}</h4>
+        <p>
+            {% trans "Dein Beitrag:" %} {{ c_currency }} {{ contribution.price }}
+        </p>
+        <p>
+            {% if contribution.contact_me %}
+                <br>
+                {% trans "Danke, dass wir dich kontaktieren dürfen, falls es nicht reichen sollte." %}
+            {% endif %}
+        </p>
+        {% if contribution.round.status == contribution.round.STATUS_ACTIVE %}
+            <a href="{% url 'jcr:select' %}" class="btn btn-success">
+                {% trans "Beitrag erhöhen" %}
+            </a>
         {% endif %}
     {% endfor %}
 {% endblock %}
