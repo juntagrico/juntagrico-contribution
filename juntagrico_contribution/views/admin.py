@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db.models import Prefetch
+from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from django.urls import reverse
@@ -74,7 +75,8 @@ def transfer_bill(request, round_id):
 @permission_required('juntagrico_contribution.view_contributionround')
 def details(request):
     round_form = RoundForm(request.GET)
-    round_form.is_valid()
+    if not round_form.is_valid():
+        raise Http404()
     contribution_round = round_form.cleaned_data['round']
 
     return render(request, 'jcr/management/details.html', {

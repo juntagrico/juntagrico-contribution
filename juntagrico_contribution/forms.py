@@ -14,7 +14,6 @@ class RoundForm(forms.Form):
     round = forms.ModelChoiceField(
         queryset=ContributionRound.objects.all(),
         label=gettext_lazy('Beitragsrunde'),
-        required=False,
         empty_label=None,
     )
 

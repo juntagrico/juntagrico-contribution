@@ -1,13 +1,17 @@
 {% extends "juntagrico/menu/user.html" %}
+{% load jcr.common %}
 {% load i18n %}
 {% load juntagrico.common %}
 {% load juntagrico.config %}
 
 {% block extend %}
-    <li class="nav-item">
-        <a class="nav-link {{ request|activemenu:"contribution" }}" href="{% url 'jcr:view' %}">
-            {% translate "Beitragsrunde" %}
-        </a>
-    </li>
+    {% show_contribution_round_menu request as show %}
+    {% if show %}
+        <li class="nav-item">
+            <a class="nav-link {{ request|activemenu:"contribution" }}" href="{% url 'jcr:view' %}">
+                {% translate "Beitragsrunde" %}
+            </a>
+        </li>
+    {% endif %}
     {{ block.super }}
 {% endblock %}

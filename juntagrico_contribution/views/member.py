@@ -1,3 +1,4 @@
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from juntagrico.view_decorators import highlighted_menu
@@ -16,6 +17,8 @@ def select(request):
         return redirect('subscription-landing')
     # check if subscription is relevant for this round
     contribution_round = ContributionRound.objects.filter(status=ContributionRound.STATUS_ACTIVE).first()
+    if not contribution_round:
+        raise Http404()
     if not contribution_round.subscriptions().filter(pk=subscription.pk).exists():
         return render(request, "jcr/not_applicable.html", {'round': contribution_round})
     # check if user is primary member
