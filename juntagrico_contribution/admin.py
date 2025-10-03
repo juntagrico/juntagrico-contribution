@@ -17,7 +17,8 @@ class OptionInline(SortableStackedInline):
 class RoundAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['minimum_amount'].queryset = self.instance.options.all()
+        if self.instance and self.instance.pk:
+            self.fields['minimum_amount'].queryset = self.instance.options.all()
 
 
 class RoundAdmin(SortableAdminBase, BaseAdmin):
