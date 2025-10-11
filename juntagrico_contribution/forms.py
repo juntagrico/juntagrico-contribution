@@ -80,7 +80,7 @@ class ContributionSelectionForm(forms.Form):
             if self.contribution:
                 minimum_amount = max(minimum_amount, self.contribution.price)
             if other_amount < minimum_amount:
-                raise forms.ValidationError({'other_amount': _('Der Mindestbetrag ist {0} {1}').format(
+                raise forms.ValidationError({'other_amount': _('Der Mindestbetrag ist {0:.2f} {1}').format(
                     minimum_amount, Config.currency()
                 )})
 
