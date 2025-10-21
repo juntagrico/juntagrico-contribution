@@ -126,7 +126,7 @@
 
     {% if round.other_amount %}
         {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
-        <strong>{{ c_currency }} {{ round.other_amounts.average_price }}</strong>
+        <strong>{{ c_currency }} {{ round.other_amounts.average_price|floatformat:"2g" }}</strong>
     {% endif %}
 
     <div class="mt-3">
