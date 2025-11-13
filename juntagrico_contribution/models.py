@@ -1,5 +1,6 @@
 from decimal import Decimal
 from functools import cached_property
+from math import ceil
 
 from django.db import models
 from django.db.models import Avg, Sum
@@ -110,6 +111,9 @@ class ContributionOption(models.Model):
         _('Multiplikator'), default=1,
         help_text=_('Wenn kein expliziter Preis angegeben wird, wird der Preis vom Typ mit diesem Faktor multipliziert.')
     )
+    amount_rounding = models.DecimalField(
+        _('Aufrunden auf'), max_digits=11, decimal_places=4, default=Decimal('0.01'),
+    )
     visible = models.BooleanField(_('Sichtbar'), blank=True, default=True,
                                   help_text=_('Diese Option dem Mitglied anzeigen?'))
     sort_order = models.PositiveIntegerField(_('Reihenfolge'), default=0, blank=False, null=False)
@@ -175,8 +179,16 @@ class ContributionSelection(models.Model):
     def get_parts_with_prices(self):
         if self.subscription is not None:
             prices_by_type = self.selected_option.price_by_type
+            total = 0
             for part in self.get_parts():
-                yield part, prices_by_type.get(part.type, 0)
+                price = prices_by_type.get(part.type, 0)
+                total += price
+                yield part, price
+            amount_rounding = self.selected_option.amount_rounding
+            rounded_total = ceil(total / amount_rounding) * amount_rounding
+            rounding = rounded_total - total
+            if rounding >= Decimal('0.01'):
+                yield _('Rundungsbetrag'), rounding
 
     def get_total_price(self):
         return sum([price for _, price in self.get_parts_with_prices()])
