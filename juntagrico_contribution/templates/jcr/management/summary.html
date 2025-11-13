@@ -95,7 +95,7 @@
     {% endblocktrans %}
     <div class="progress">
         {% with progress=round.submitted|percent:round.subscriptions.count %}
-            <div class="progress-bar" role="progressbar" style="width: {{ progress|floatformat:0 }}%;"
+            <div class="progress-bar" role="progressbar" style="width: {{ progress|floatformat:"2u" }}%;"
                  aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
                 {{ progress|floatformat:-1 }}%
             </div>
