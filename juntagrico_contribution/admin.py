@@ -27,7 +27,10 @@ class RoundAdmin(SortableAdminBase, BaseAdmin):
     fieldsets = [
         (
             None,
-            {'fields': ['status', 'name', 'description', 'target_amount', 'other_amount', 'minimum_amount']},
+            {'fields': [
+                'status', 'name', 'description', 'target_amount',
+                'other_amount', 'minimum_amount', 'contact_me_text'
+            ]},
         ),
         (
             _(f'{Config.vocabulary("subscription")}-Filter'),

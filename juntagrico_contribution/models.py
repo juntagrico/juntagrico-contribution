@@ -30,6 +30,12 @@ class ContributionRound(models.Model):
         'ContributionOption', related_name='is_minimum_for', on_delete=models.PROTECT, null=True, blank=True,
         verbose_name=_('Mindestbetrag'), help_text=_('Anderer Betrag muss höher sein als diese Option')
     )
+    contact_me_text = models.TextField(
+        _('"Kontaktiert mich" Text'),
+        help_text=_('Text bei Abfrage zur Bereitschaft für eine 2. Runde'),
+        default=_('Bitte kontaktiert mich, falls es nicht reicht.'), blank=True
+    )
+
     status = models.CharField(_('Status'), max_length=1, choices=DISPLAY_OPTIONS, default=STATUS_DRAFT)
     creation_cutoff = models.DateField(
         _('Nur Neubestellungen ab'), blank=True, null=True,
