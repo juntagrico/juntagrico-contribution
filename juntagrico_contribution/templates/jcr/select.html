@@ -57,13 +57,14 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="custom-control custom-switch mb-3">
-                    <input type="checkbox" class="custom-control-input" id="contact_me" name="contact_me" {% if form.contact_me.value %} checked{% endif %}>
-                    <label class="custom-control-label" for="contact_me">
-                        {{ round.contact_me_text }}
-                    </label>
-                </div>
-
+                {%if round.contact_me_text %}
+                    <div class="custom-control custom-switch mb-3">
+                        <input type="checkbox" class="custom-control-input" id="contact_me" name="contact_me" {% if form.contact_me.value %} checked{% endif %}>
+                        <label class="custom-control-label" for="contact_me">
+                            {{ round.contact_me_text }}
+                        </label>
+                    </div>
+                {% endif %}
                 <button type="submit" class="btn btn-primary btn-lg">{% trans "Gebot abgeben" %}</button>
             </div>
         </div>
