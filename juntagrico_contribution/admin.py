@@ -1,4 +1,4 @@
-from adminsortable2.admin import SortableStackedInline, SortableAdminBase
+from adminsortable2.admin import SortableStackedInline, SortableAdminBase, SortableAdminMixin
 from django import forms
 from django.contrib import admin
 from juntagrico.admins import BaseAdmin
@@ -45,7 +45,7 @@ class ConditionInline(admin.TabularInline):
     extra = 1
 
 
-class OptionAdmin(BaseAdmin):
+class OptionAdmin(SortableAdminMixin, BaseAdmin):
     exclude = ['sort_order']
     list_display = ['name', 'round', 'multiplier', 'amount_rounding', 'visible']
     list_filter = ['round', 'visible']
