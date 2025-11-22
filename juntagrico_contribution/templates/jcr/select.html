@@ -8,9 +8,7 @@
 
 {% block content %}
     {% if round.description %}
-        <p>
-            {{ round.description }}
-        </p>
+        {{ round.description|safe }}
     {% endif %}
     {% config "currency" as c_currency %}
     {% if form.contribution %}
