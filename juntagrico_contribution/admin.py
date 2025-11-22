@@ -53,9 +53,13 @@ class OptionAdmin(SortableAdminMixin, BaseAdmin):
 
 
 class SelectionAdmin(BaseAdmin):
-    list_display = ['round', 'subscription', 'selected_option', 'price', 'contact_me', 'modification_date']
+    list_display = ['round', 'get_primary_member', 'subscription', 'selected_option', 'price', 'contact_me', 'modification_date']
     list_filter = ['round', 'modification_date']
     readonly_fields = ['modification_date']
+
+    @admin.display(description="Primary Member")
+    def get_primary_member(self, obj):
+            return obj.subscription.primary_member
 
 
 admin.site.register(ContributionRound, RoundAdmin)
