@@ -139,7 +139,7 @@ class ContributionOption(models.Model):
     def price_by_type(self):
         explicit_prices = {k: v for k, v in self.conditions.values_list('subscription_type', 'price')}
         return {
-            sub_type: explicit_prices.get(sub_type.id, sub_type.price * Decimal(self.multiplier))
+            sub_type: explicit_prices.get(sub_type.id, sub_type.price * Decimal("%.4f" % self.multiplier))
             for sub_type in SubscriptionType.objects.all()
         }
 
