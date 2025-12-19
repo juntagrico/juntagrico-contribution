@@ -1,8 +1,9 @@
+from math import ceil
 from django.urls import reverse
 
 from juntagrico.tests import JuntagricoTestCase
 from . import ContributionTestCase
-from ..models import ContributionRound
+from ..models import ContributionRound, ContributionSelection
 from decimal import Decimal
 
 
@@ -48,6 +49,31 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
             self.contribution_round.target_amount,
             Decimal('2.0') * self.contribution_round.total_nominal
         )
+
+    def test_total_unselected_without_default_amount(self):
+        self.contribution_round.default_amount = None
+        self.contribution_round.save()
+        expected_total = sum(
+            part.type.price for part in self.contribution_round.subscription_parts()
+            if not part.subscription.contributions.filter(round=self.contribution_round).exists()
+        )
+        self.assertEqual(self.contribution_round.total_unselected, expected_total)
+
+    def test_total_unselected_with_default_amount(self):
+        self.contribution_round.default_amount = self.option1   # multiplier 0.8
+        self.contribution_round.save()
+        unselected_parts = [
+            part for part in self.contribution_round.subscription_parts()
+            if not part.subscription.contributions.filter(round=self.contribution_round).exists()
+        ]
+
+        # round the parts per subscription according to the option's amount_rounding
+        expected_total = sum(
+            part.type.price * Decimal("0.8")
+            for part in unselected_parts
+        )
+        expected_total_rounded = ceil(expected_total / self.option1.amount_rounding) * self.option1.amount_rounding
+        self.assertEqual(self.contribution_round.total_unselected, expected_total)
 
 class ClosedRoundTests(ContributionTests):
     @classmethod

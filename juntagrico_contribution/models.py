@@ -69,8 +69,12 @@ class ContributionRound(models.Model):
 
     @cached_property
     def total_unselected(self):
+        """
+        total amount of all subscription parts without a contribution selection.
+        the amount is calculated using the default_amount option if set, otherwise the nominal price.
+        the rounding of the option is not applied here, as this would be too complex for the database query.
+        """
         multiplier = self.default_amount.multiplier if self.default_amount else 1.0
-        amount_rounding = self.default_amount.amount_rounding if self.default_amount else Decimal('0.01')
         
         return self.subscription_parts().exclude(subscription__contributions__round=self).aggregate(
             total=Sum('type__price') * Decimal("%.4f" % multiplier)
