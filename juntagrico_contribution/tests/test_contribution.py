@@ -67,12 +67,10 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
             if not part.subscription.contributions.filter(round=self.contribution_round).exists()
         ]
 
-        # round the parts per subscription according to the option's amount_rounding
         expected_total = sum(
             part.type.price * Decimal("0.8")
             for part in unselected_parts
         )
-        expected_total_rounded = ceil(expected_total / self.option1.amount_rounding) * self.option1.amount_rounding
         self.assertEqual(self.contribution_round.total_unselected, expected_total)
 
 class ClosedRoundTests(ContributionTests):
