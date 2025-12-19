@@ -28,7 +28,7 @@ class RoundAdmin(SortableAdminBase, BaseAdmin):
         (
             None,
             {'fields': [
-                'status', 'name', 'description', 'target_amount',
+                'status', 'name', 'description', 'target_multiplier',
                 'other_amount', 'minimum_amount', 'contact_me_text'
             ]},
         ),

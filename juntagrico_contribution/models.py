@@ -23,12 +23,16 @@ class ContributionRound(models.Model):
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Eindeutiger Name dieser Beitragsrunde'))
     description = models.TextField(_('Beschreibung'), default='', blank=True)
-    target_amount = models.DecimalField(_('Zielbetrag'), max_digits=9, decimal_places=2)
+    target_multiplier = models.FloatField(_('Ziel-Multiplikator'), default=1.0)
     other_amount = models.BooleanField(_('Anderen Beitrag erlauben'), default=False,
                                        help_text=_('Erlaubt dem Mitglied einen eigenen, höheren Betrag anzugeben'))
     minimum_amount = models.ForeignKey(
         'ContributionOption', related_name='is_minimum_for', on_delete=models.PROTECT, null=True, blank=True,
         verbose_name=_('Mindestbetrag'), help_text=_('Anderer Betrag muss höher sein als diese Option')
+    )
+    default_amount = models.ForeignKey(
+        'ContributionOption', related_name='is_default_for', on_delete=models.PROTECT, null=True, blank=True,
+        verbose_name=_('Standardbetrag'), help_text=_('Option für Mitglieder, die kein Gebot abgeben')
     )
     contact_me_text = models.TextField(
         _('"Kontaktiert mich" Text'),
@@ -65,13 +69,24 @@ class ContributionRound(models.Model):
 
     @cached_property
     def total_unselected(self):
+        multiplier = self.default_amount.multiplier if self.default_amount else 1.0
+        amount_rounding = self.default_amount.amount_rounding if self.default_amount else Decimal('0.01')
+        
         return self.subscription_parts().exclude(subscription__contributions__round=self).aggregate(
-            total=Sum('type__price')
+            total=Sum('type__price') * Decimal("%.4f" % multiplier)
         ).get('total') or Decimal(0)
+    
+    @cached_property
+    def total_nominal(self):
+        return self.subscription_parts().aggregate(total=Sum('type__price')).get('total') or Decimal(0)
 
     @property
     def current_total(self):
         return self.total_selected + self.total_unselected
+    
+    @property
+    def target_amount(self):
+        return Decimal(self.target_multiplier) * self.total_nominal
 
     def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)
