@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from juntagrico.tests import JuntagricoTestCase
 from . import ContributionTestCase
-from ..models import ContributionRound, ContributionSelection
+from ..models import ContributionRound
 from decimal import Decimal
 
 
