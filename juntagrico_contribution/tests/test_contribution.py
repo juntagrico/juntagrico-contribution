@@ -1,6 +1,4 @@
-from math import ceil
 from django.urls import reverse
-
 from juntagrico.tests import JuntagricoTestCase
 from . import ContributionTestCase
 from ..models import ContributionRound
