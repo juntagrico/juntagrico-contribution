@@ -125,8 +125,8 @@
     </div>
 
     {% if round.other_amount %}
-        {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
-        <strong>{{ c_currency }} {{ round.other_amounts.average_price|floatformat:"2g" }}</strong>
+        {% blocktrans %}Durchschnittliche Erhöhung bei "Anderer Betrag":{% endblocktrans %}
+        <strong>{{ round.other_amounts_average_increase|floatformat:"2g" }} %</strong>
     {% endif %}
 
     <div class="mt-3">

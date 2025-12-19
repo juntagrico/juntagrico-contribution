@@ -60,7 +60,16 @@ class ContributionRound(models.Model):
     @cached_property
     def other_amounts(self):
         return self.valid_selections().filter(selected_option=None)
-
+    
+    @cached_property
+    def other_amounts_average_increase(self):
+        if not self.other_amounts.exists():
+            return Decimal(0.0)
+        
+        amount = sum(self.other_amounts.values_list('price', flat=True))
+        nominal_amount = sum(sel.get_nominal_price() for sel in self.other_amounts)
+        return ((Decimal(amount) / Decimal(nominal_amount)) - Decimal(1.0)) * Decimal(100.0)
+        
     @cached_property
     def total_selected(self):
         return self.valid_selections().aggregate(
@@ -90,7 +99,7 @@ class ContributionRound(models.Model):
     
     @property
     def target_amount(self):
-        return Decimal(self.target_multiplier) * self.total_nominal
+        return round(Decimal(self.target_multiplier) * self.total_nominal)
 
     def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)
