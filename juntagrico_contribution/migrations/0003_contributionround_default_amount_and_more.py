@@ -19,10 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contributionround',
             name='target_multiplier',
-            field=models.FloatField(default=1.0, verbose_name='Ziel-Multiplikator'),
-        ),
-        migrations.RemoveField(
-            model_name='contributionround',
-            name='target_amount',
+            field=models.DecimalField(blank=True, decimal_places=3, max_digits=4, null=True, verbose_name='Ziel-Multiplikator'),
         ),
     ]
