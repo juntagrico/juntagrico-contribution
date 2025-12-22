@@ -23,12 +23,12 @@ class RoundAdminForm(forms.ModelForm):
 
 class RoundAdmin(SortableAdminBase, BaseAdmin):
     form = RoundAdminForm
-    list_display = ['name', 'status', 'target_amount', 'other_amount']
+    list_display = ['name', 'status', 'effective_target_amount', 'other_amount']
     fieldsets = [
         (
             None,
             {'fields': [
-                'status', 'name', 'description', 'target_multiplier',
+                'status', 'name', 'description', 'target_amount', 'target_multiplier',
                 'other_amount', 'minimum_amount', 'default_amount', 'contact_me_text'
             ]},
         ),

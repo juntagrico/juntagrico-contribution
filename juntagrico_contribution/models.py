@@ -24,7 +24,8 @@ class ContributionRound(models.Model):
                             help_text=_('Eindeutiger Name dieser Beitragsrunde'))
     description = models.TextField(_('Beschreibung'), default='', blank=True)
     target_amount = models.DecimalField(_('Ziel-Betrag'), max_digits=9, decimal_places=2)
-    target_multiplier = models.DecimalField(_('Ziel-Multiplikator'), max_digits=4, decimal_places=3, null=True, blank=True)
+    target_multiplier = models.DecimalField(_('Ziel-Multiplikator'), max_digits=4, decimal_places=3, null=True, blank=True,
+                                            help_text=_('Alternativ zum Ziel-Betrag kann hier ein Multiplikator angegeben werden, der mit Nominalbetrag multipliziert wird. Ersetzt den Ziel-Betrag, wenn gesetzt.'))
     other_amount = models.BooleanField(_('Anderen Beitrag erlauben'), default=False,
                                        help_text=_('Erlaubt dem Mitglied einen eigenen, höheren Betrag anzugeben'))
     minimum_amount = models.ForeignKey(
@@ -67,7 +68,7 @@ class ContributionRound(models.Model):
         if not self.other_amounts.exists():
             return Decimal(0.0)
         
-        amount = sum(self.other_amounts.values_list('price', flat=True))
+        amount = self.other_amounts.aggregate(total=Sum('price')).get('total')
         nominal_amount = sum(sel.get_nominal_price() for sel in self.other_amounts)
         return ((Decimal(amount) / Decimal(nominal_amount)) - Decimal(1.0)) * Decimal(100.0)
         
@@ -84,11 +85,10 @@ class ContributionRound(models.Model):
         the amount is calculated using the default_amount option if set, otherwise the nominal price.
         the rounding of the option is not applied here, as this would be too complex for the database query.
         """
-        multiplier = self.default_amount.multiplier if self.default_amount else 1.0
+        prices_by_type = self.default_amount.price_by_type if self.default_amount else {}
+        parts = self.subscription_parts().exclude(subscription__contributions__round=self)
         
-        return self.subscription_parts().exclude(subscription__contributions__round=self).aggregate(
-            total=Sum('type__price') * Decimal("%.4f" % multiplier)
-        ).get('total') or Decimal(0)
+        return sum([prices_by_type.get(part.type, part.type.price) for part in parts])
     
     @cached_property
     def total_nominal(self):
@@ -99,8 +99,10 @@ class ContributionRound(models.Model):
         return self.total_selected + self.total_unselected
     
     @property
-    def target_amount(self):
-        return round(Decimal(self.target_multiplier) * self.total_nominal)
+    def effective_target_amount(self):
+        if self.target_multiplier:
+            return round(Decimal(self.target_multiplier) * self.total_nominal)
+        return self.target_amount
 
     def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)

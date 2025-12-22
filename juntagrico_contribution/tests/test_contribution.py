@@ -40,12 +40,20 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
            part.type.price for part in self.contribution_round.subscription_parts()
         ))
 
-    def test_target_amount(self):
+    def test_target_multiplier(self):
         self.contribution_round.target_multiplier = 2.0
         self.contribution_round.save()
         self.assertEqual(
-            self.contribution_round.target_amount,
+            self.contribution_round.effective_target_amount,
             Decimal('2.0') * self.contribution_round.total_nominal
+        )
+
+    def test_target_amount(self):
+        self.contribution_round.target_multiplier = None
+        self.contribution_round.save()
+        self.assertEqual(
+            self.contribution_round.effective_target_amount,
+            self.contribution_round.target_amount
         )
 
     def test_total_unselected_without_default_amount(self):
