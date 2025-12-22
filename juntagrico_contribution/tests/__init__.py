@@ -17,7 +17,7 @@ class ContributionTestCase(JuntagricoTestCase):
         cls.contribution_round = ContributionRound.objects.create(
             name='Beitragsrunde 1',
             description='Beschreibung der Beitragsrunde 1',
-            target_amount=1000000,
+            target_amount=1000000.00,
             other_amount=True,
             status=ContributionRound.STATUS_ACTIVE,
         )

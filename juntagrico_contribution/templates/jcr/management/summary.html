@@ -125,8 +125,8 @@
     </div>
 
     {% if round.other_amount %}
-        {% blocktrans %}Durchschnittlicher "Anderer Betrag":{% endblocktrans %}
-        <strong>{{ c_currency }} {{ round.other_amounts.average_price|floatformat:"2g" }}</strong>
+        {% blocktrans %}Durchschnittliche Erhöhung bei "Anderer Betrag":{% endblocktrans %}
+        <strong>{{ round.other_amounts_average_increase|floatformat:"2g" }} %</strong>
     {% endif %}
 
     <div class="mt-3">
@@ -136,7 +136,7 @@
     <h4 class="mt-5">Bilanz</h4>
     <p>
         {% blocktrans %}Zielbetrag:{% endblocktrans %}
-        <strong>{{ c_currency }} {{ round.target_amount|floatformat:"2g" }}</strong>
+        <strong>{{ c_currency }} {{ round.effective_target_amount|floatformat:"2g" }}</strong>
     </p>
     <p>
         {% blocktrans %}Summe aller Gebote:{% endblocktrans %}
@@ -156,11 +156,11 @@
         {% blocktrans %}Total:{% endblocktrans %}
         <strong>
             {{ c_currency }} {{ round.current_total|floatformat:"2g" }}
-            ({{ round.current_total|percent:round.target_amount|floatformat:-1 }}%)
+            ({{ round.current_total|percent:round.effective_target_amount|floatformat:-1 }}%)
         </strong>
     </p>
     <div class="progress">
-        {% with percentage=round.total_selected|percent:round.target_amount %}
+        {% with percentage=round.total_selected|percent:round.effective_target_amount %}
             <div class="progress-bar bg-success" role="progressbar"
                  style="width: {{ percentage|floatformat:0 }}%;"
                  aria-valuenow="{{ round.total_selected|floatformat:0 }}"
@@ -168,7 +168,7 @@
                 {{ percentage|floatformat:-1 }}%
             </div>
         {% endwith %}
-        {% with percentage=round.total_unselected|percent:round.target_amount %}
+        {% with percentage=round.total_unselected|percent:round.effective_target_amount %}
             <div class="progress-bar bg-info" role="progressbar"
                  style="width: {{ percentage|floatformat:0 }}%;"
                  aria-valuenow="{{ round.total_unselected|floatformat:0 }}"
