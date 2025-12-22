@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='contributionround',
             name='target_multiplier',
-            field=models.DecimalField(blank=True, decimal_places=3, max_digits=4, null=True, verbose_name='Ziel-Multiplikator'),
+            field=models.DecimalField(blank=True, decimal_places=3, help_text='Alternativ zum Ziel-Betrag kann hier ein Multiplikator angegeben werden, der mit Nominalbetrag multipliziert wird. Ersetzt den Ziel-Betrag, wenn gesetzt.', max_digits=4, null=True, verbose_name='Ziel-Multiplikator'),
         ),
     ]
