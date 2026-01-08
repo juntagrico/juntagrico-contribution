@@ -71,7 +71,7 @@
                 {% blocktrans trimmed %}
                     Die Gebote können nun in die Rechnungen übertragen werden.
                     Dafür müssen die Rechnungen schon generiert worden sein.
-                    Die Zuordnung zu einem Rechnungselement-Typ is optional.
+                    Im Rechnungs-Modul muss in den Einstellungen ein Rechnungselement-Typ für Beiträge definiert sein.
                 {% endblocktrans %}
             </p>
             <form action="{% url 'jcr:admin-transfer-bill' round.id %}" method="POST">

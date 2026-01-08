@@ -69,6 +69,11 @@ def transfer_bill(request, round_id):
                                           'Wurden die Rechnungen schon generiert?').format(len(failed)))
             else:
                 messages.success(request, _('Übertragung erfolgreich abgeschlossen'))
+    else:
+        errors = form.non_field_errors()
+        if errors:
+            messages.error(request, errors[0])
+
     return redirect(request.POST.get('next', reverse('jcr:admin-summary', args=(contribution_round.id,))))
 
 

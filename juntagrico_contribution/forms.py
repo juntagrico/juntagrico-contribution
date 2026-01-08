@@ -105,16 +105,23 @@ class ContributionSelectionForm(forms.Form):
 
 class BillTransferForm(forms.Form):
     business_year = forms.ModelChoiceField(queryset=None, required=True, empty_label=None, label=_('Geschäftsjahr'))
-    bill_item_type = forms.ModelChoiceField(queryset=None, required=True, label=_('Rechnungselement-Typ'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.enabled = 'juntagrico_billing' in settings.INSTALLED_APPS
-        if self.enabled:
-            from juntagrico_billing.models import bill
-            self.fields["business_year"].queryset = bill.BusinessYear.objects.all()
-            self.fields["bill_item_type"].queryset = bill.BillItemType.objects.all()
+        if not self.enabled:
+            return
+    
+        from juntagrico_billing.models.bill import BusinessYear
+        self.fields["business_year"].queryset = BusinessYear.objects.all()
 
+    def clean(self):
+        # fetch bill item type for contributions from juntagrico-billing settings
+        from juntagrico_billing.models.settings import Settings
+        self.bill_item_type = Settings.objects.first().contribution_itemtype
+        if self.bill_item_type is None:
+            raise forms.ValidationError(_('Kein Rechnungselement-Typ für Beiträge in den Buchhaltungseinstellungen definiert'))
+    
     def save(self, contribution_round):
         failed = True
         if self.enabled:
@@ -141,7 +148,7 @@ class BillTransferForm(forms.Form):
 
                 BillItem.objects.update_or_create(
                     bill=bill,
-                    custom_item_type=self.cleaned_data['bill_item_type'],
+                    custom_item_type=self.bill_item_type,
                     defaults={
                         'amount': amount,
                         'description': description,
@@ -153,6 +160,6 @@ class BillTransferForm(forms.Form):
         if self.enabled:
             from juntagrico_billing.models.bill import BillItem
             BillItem.objects.filter(
-                custom_item_type=self.cleaned_data['bill_item_type'],
+                custom_item_type=self.bill_item_type,
                 bill__business_year=self.cleaned_data['business_year'],
             ).delete()
