@@ -104,8 +104,8 @@ class ContributionSelectionForm(forms.Form):
 
 
 class BillTransferForm(forms.Form):
-    business_year = forms.ModelChoiceField(queryset=None, empty_label=None, label=_('Geschäftsjahr'))
-    bill_item_type = forms.ModelChoiceField(queryset=None, required=False, label=_('Rechnungselement-Typ'))
+    business_year = forms.ModelChoiceField(queryset=None, required=True, empty_label=None, label=_('Geschäftsjahr'))
+    bill_item_type = forms.ModelChoiceField(queryset=None, required=True, label=_('Rechnungselement-Typ'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -114,9 +114,6 @@ class BillTransferForm(forms.Form):
             from juntagrico_billing.models import bill
             self.fields["business_year"].queryset = bill.BusinessYear.objects.all()
             self.fields["bill_item_type"].queryset = bill.BillItemType.objects.all()
-
-    def _make_description(self, contribution_round):
-        return _('Beitragsrunde {}').format(contribution_round.name)
 
     def save(self, contribution_round):
         failed = True
@@ -131,12 +128,23 @@ class BillTransferForm(forms.Form):
                 if not bill:
                     failed.append(selection.subscription.primary_member)
                     continue
+                amount = selection.price - selection.get_nominal_price()
+
+                # skip zero-amount bill items
+                if amount == 0:
+                    continue
+
+                if selection.selected_option:
+                    description = selection.selected_option.name
+                else:
+                    description = ''
+
                 BillItem.objects.update_or_create(
                     bill=bill,
-                    description=self._make_description(contribution_round),
+                    custom_item_type=self.cleaned_data['bill_item_type'],
                     defaults={
-                        'custom_item_type': self.cleaned_data['bill_item_type'],
-                        'amount': selection.price - selection.get_nominal_price(),
+                        'amount': amount,
+                        'description': description,
                     }
                 )
         return failed
@@ -145,6 +153,6 @@ class BillTransferForm(forms.Form):
         if self.enabled:
             from juntagrico_billing.models.bill import BillItem
             BillItem.objects.filter(
-                description=self._make_description(contribution_round),
+                custom_item_type=self.cleaned_data['bill_item_type'],
                 bill__business_year=self.cleaned_data['business_year'],
             ).delete()
