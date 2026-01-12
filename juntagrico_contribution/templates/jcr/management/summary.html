@@ -66,7 +66,7 @@
                 </button>
             </form>
         </div>
-        {% if bill_transfer_form.enabled %}
+        {% if bill_transfer_form.enabled and perms.juntagrico_billing.change_billitem %}
             <p>
                 {% blocktrans trimmed %}
                     Die Gebote können nun in die Rechnungen übertragen werden.
