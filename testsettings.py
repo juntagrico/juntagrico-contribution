@@ -15,11 +15,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'crispy_forms',
-    'adminsortable2',
     'juntagrico_contribution',
     # 'juntagrico_billing',
     'juntagrico',
+    'crispy_forms',
+    'crispy_bootstrap4',
+    'adminsortable2',
+    'djrichtextfield',
     'import_export',
     'impersonate',
     'fontawesomefree',
@@ -112,8 +114,6 @@ TEMPLATES = [
 ]
 
 LOGIN_REDIRECT_URL = "/"
-
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 

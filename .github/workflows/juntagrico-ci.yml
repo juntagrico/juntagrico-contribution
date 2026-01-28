@@ -4,21 +4,24 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main, release_* ]
+    branches: [ main, 'releases/**' ]
 
 jobs:
-  build:
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     env:
       DJANGO_SETTINGS_MODULE: testsettings
       PYTHONPATH: .
-      CC_TEST_REPORTER_ID: ${{ secrets.CODECOV_TOKEN }}
+      COVERAGE_FILE: coverage
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        include:
+          - python-version: '3.10'
+          - python-version: '3.11'
+          - python-version: '3.12'
+          - python-version: '3.13'
+          - python-version: '3.14'
 
     steps:
     - uses: actions/checkout@v4
@@ -31,15 +34,33 @@ jobs:
         pip install --upgrade -r requirements.txt
     - name: ruff
       run: |
-        ruff check juntagrico_contribution
+        ruff check --preview juntagrico_contribution
     - name: run tests
       run: |
         python -m django makemigrations --noinput
         coverage run -m manage test
     - run: coverage lcov -o coverage.lcov
-      if: ${{ matrix.python-version == '3.11' }}
-    - uses: qltysh/qlty-action/coverage@v2
-      if: ${{ matrix.python-version == '3.11' }}
+      if: ${{ matrix.python-version  == '3.11' }}
+    - uses: actions/upload-artifact@v4
+      if: ${{ matrix.python-version  == '3.11' }}
       with:
-        oidc: true
-        files: coverage.lcov
+        name: coverage
+        path: coverage.lcov
+
+  coverage:
+    name: Coverage Report
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: coverage
+          merge-multiple: true
+      - uses: qltysh/qlty-action/coverage@v2
+        with:
+          oidc: true
+          files: coverage/coverage*.lcov

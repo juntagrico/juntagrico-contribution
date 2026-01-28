@@ -59,7 +59,7 @@ class SelectionAdmin(BaseAdmin):
 
     @admin.display(description="Primary Member")
     def get_primary_member(self, obj):
-            return obj.subscription.primary_member
+        return obj.subscription.primary_member
 
 
 admin.site.register(ContributionRound, RoundAdmin)
