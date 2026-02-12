@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'djrichtextfield',
     'import_export',
     'impersonate',
-    'fontawesomefree',
 ]
 
 DATABASES = {
@@ -51,11 +50,7 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-EMAIL_HOST = os.environ.get('JUNTAGRICO_EMAIL_HOST')
-EMAIL_HOST_USER = os.environ.get('JUNTAGRICO_EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('JUNTAGRICO_EMAIL_PASSWORD')
-EMAIL_PORT = os.environ.get('JUNTAGRICO_EMAIL_PORT', 2525)
-EMAIL_USE_TLS = os.environ.get('JUNTAGRICO_EMAIL_TLS', False)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 WHITELIST_EMAILS = []
