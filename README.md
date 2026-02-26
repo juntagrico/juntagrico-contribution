@@ -1,8 +1,8 @@
 # juntagrico-contribution
 
 [![image](https://github.com/juntagrico/juntagrico-contribution/actions/workflows/juntagrico-ci.yml/badge.svg?branch=main&event=push)](https://github.com/juntagrico/juntagrico-contribution/actions/workflows/juntagrico-ci.yml)
-[![Maintainability](https://api.codeclimate.com/v1/badges/4e1874454ccc91505707/maintainability)](https://codeclimate.com/github/juntagrico/juntagrico-contribution/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/4e1874454ccc91505707/test_coverage)](https://codeclimate.com/github/juntagrico/juntagrico-contribution/test_coverage)
+[![Maintainability](https://qlty.sh/gh/juntagrico/projects/juntagrico-contribution/maintainability.svg)](https://qlty.sh/gh/juntagrico/projects/juntagrico-contribution)
+[![Code Coverage](https://qlty.sh/gh/juntagrico/projects/juntagrico-contribution/coverage.svg)](https://qlty.sh/gh/juntagrico/projects/juntagrico-contribution)
 [![image](https://img.shields.io/github/last-commit/juntagrico/juntagrico-contribution.svg)](https://github.com/juntagrico/juntagrico-contribution)
 [![image](https://img.shields.io/github/commit-activity/y/juntagrico/juntagrico-contribution)](https://github.com/juntagrico/juntagrico-contribution)
 
@@ -13,7 +13,8 @@ This is an extension for juntagrico. You can find more information about juntagr
 
 ## Features
 
-* ...
+* Run Contribution Rounds (Beitragsrunden) with or without predefined options.
+* Transfer the contributions to bill in juntagrico-billing
 
 ## Installation
 
