@@ -10,15 +10,6 @@
     font-weight: bold;
 }
 
-.jcr-details .jcr-details-arrow {
-    /* animate rotation */
-    rotate: 90deg;
-}
-
-.jcr-details.collapsed .jcr-details-arrow {
-    rotate: 0deg;
-}
-
 #jcr_selection_form .switch label {
     white-space: nowrap;
 }

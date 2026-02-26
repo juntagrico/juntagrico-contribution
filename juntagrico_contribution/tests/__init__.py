@@ -7,6 +7,7 @@ class ContributionTestCase(JuntagricoTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.load_members()
+        cls.default_member = cls.member
         cls.set_up_depots()
         cls.set_up_sub_types()
         cls.set_up_sub()

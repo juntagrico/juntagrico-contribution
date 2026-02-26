@@ -79,6 +79,7 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
         )
         self.assertEqual(self.contribution_round.total_unselected, expected_total)
 
+
 class ClosedRoundTests(ContributionTests):
     @classmethod
     def setUpTestData(cls):

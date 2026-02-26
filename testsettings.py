@@ -14,15 +14,16 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
-    'crispy_forms',
-    'adminsortable2',
+    'juntagrico.apps.JuntagricoAdminConfig',
     'juntagrico_contribution',
     # 'juntagrico_billing',
     'juntagrico',
+    'crispy_forms',
+    'crispy_bootstrap4',
+    'adminsortable2',
+    'djrichtextfield',
     'import_export',
     'impersonate',
-    'fontawesomefree',
 ]
 
 DATABASES = {
@@ -49,11 +50,7 @@ MIDDLEWARE = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-EMAIL_HOST = os.environ.get('JUNTAGRICO_EMAIL_HOST')
-EMAIL_HOST_USER = os.environ.get('JUNTAGRICO_EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('JUNTAGRICO_EMAIL_PASSWORD')
-EMAIL_PORT = os.environ.get('JUNTAGRICO_EMAIL_PORT', 2525)
-EMAIL_USE_TLS = os.environ.get('JUNTAGRICO_EMAIL_TLS', False)
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 WHITELIST_EMAILS = []
@@ -112,8 +109,6 @@ TEMPLATES = [
 ]
 
 LOGIN_REDIRECT_URL = "/"
-
-SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 

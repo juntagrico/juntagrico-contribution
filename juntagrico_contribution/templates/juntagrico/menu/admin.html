@@ -4,10 +4,9 @@
 {% block extend %}
     {% if perms.juntagrico_contribution.view_contributionround %}
         <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#contribution">
+            <a class="nav-link collapsed" data-toggle="collapse" href="#contribution">
+                <i class="bi bi-caret-down turn"></i>
                 {% trans "Beitragsrunden" %}
-                <i class="fas fa-angle-right">
-                </i>
             </a>
             <div class="collapse" id="contribution">
                 <ul class="nav flex-column admin-menu subadmin-menu">
