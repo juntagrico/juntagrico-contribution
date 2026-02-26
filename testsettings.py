@@ -14,7 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.admin',
+    'juntagrico.apps.JuntagricoAdminConfig',
     'juntagrico_contribution',
     # 'juntagrico_billing',
     'juntagrico',

@@ -12,8 +12,8 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 dependencies = [
+    "juntagrico>=2.0.0",
     "django-admin-sortable2~=2.3.0",
-    "juntagrico>=2.0.0a2",
 ]
 classifiers = [
     'Development Status :: 5 - Production/Stable',
