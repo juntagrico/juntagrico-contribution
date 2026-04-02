@@ -43,3 +43,7 @@ urlpatterns = [
     path('jcr/', include('juntagrico_contribution.urls')),
 ]
 ```
+
+## More
+
+Check the [documentation](doc/juntagrico_contribution_details.md) for more details.
