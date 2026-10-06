@@ -25,6 +25,12 @@
             </a>
         {% endif %}
     {% endfor %}
+    {% for round in new_rounds %}
+        <h4>{{ round }}</h4>
+        <a href="{% url 'jcr:select' round.id %}" class="btn btn-primary">
+            {% trans "Bieten" %}
+        </a>
+    {% endfor %}
 {% endblock %}
 
 {% block styles %}
