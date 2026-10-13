@@ -13,6 +13,12 @@
         <p>
             {% trans "Dein Beitrag:" %} {{ c_currency }} {{ contribution.price }}
         </p>
+        {% if contribution.round.enable_assignments %}
+            <p>
+                {% trans "Deine Einsätze:" %} {{ contribution.total_assignments }}<br>
+                {% trans "Davon im Kernbereich:" %} {{ contribution.core_assignments }}
+            </p>
+        {% endif %}
         <p>
             {% if contribution.contact_me %}
                 <br>
@@ -20,8 +26,8 @@
             {% endif %}
         </p>
         {% if contribution.round.status == contribution.round.STATUS_ACTIVE %}
-            <a href="{% url 'jcr:select' %}" class="btn btn-success">
-                {% trans "Beitrag erhöhen" %}
+            <a href="{% url 'jcr:select' contribution.round.id %}" class="btn btn-success">
+                {% trans "Gebot ändern" %}
             </a>
         {% endif %}
     {% endfor %}

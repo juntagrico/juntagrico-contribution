@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
-
 from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
 
 
@@ -35,7 +34,7 @@ class ContributionSelectionForm(forms.Form):
     selection = forms.ChoiceField(widget=forms.RadioSelect)
     contact_me = forms.BooleanField(required=False)
 
-    def __init__(self, contribution_round, subscription, *args, **kwargs):
+    def __init__(self, contribution_round, subscription, default_total_assignments, default_core_assignments, *args, **kwargs):
         self.contribution_round = contribution_round
         self.subscription = subscription
         self.contribution = self.contribution_round.selections.filter(subscription=self.subscription).first()
@@ -47,6 +46,12 @@ class ContributionSelectionForm(forms.Form):
         if self.contribution:
             self.fields['selection'].initial = self.contribution.selected_option.pk if self.contribution.selected_option else 'other'
             self.fields['contact_me'].initial = self.contribution.contact_me
+
+        if self.contribution_round.enable_assignments:
+            self.fields['total_assignments'] = forms.IntegerField(required=False, 
+                                                                  initial=self.contribution.total_assignments if self.contribution else default_total_assignments)
+            self.fields['core_assignments'] = forms.IntegerField(required=False,
+                                                                 initial=self.contribution.core_assignments if self.contribution else default_core_assignments)
 
     def get_choices(self):
         for option in self.visible_options():
@@ -92,11 +97,21 @@ class ContributionSelectionForm(forms.Form):
         else:
             selected_option = get_object_or_404(ContributionOption, pk=selection)
             price = None
+
+        if self.contribution_round.enable_assignments:
+            total_assignments = self.cleaned_data.get('total_assignments')
+            core_assignments = self.cleaned_data.get('core_assignments')
+        else:
+            total_assignments = None
+            core_assignments = None
+
         ContributionSelection.objects.update_or_create(
             defaults=dict(
                 selected_option=selected_option,
                 price=price,
-                contact_me=self.cleaned_data['contact_me']
+                contact_me=self.cleaned_data['contact_me'],
+                total_assignments=total_assignments,
+                core_assignments=core_assignments,
             ),
             subscription=self.subscription,
             round=self.contribution_round
