@@ -52,6 +52,21 @@ class ContributionRound(models.Model):
         help_text=_('Wer erst nach diesem Datum gekündigt hat, nimmt noch an der Beitragsrunde teil.')
     )
 
+    enable_assignments = models.BooleanField(
+        _('Einsätze aktivieren'), default=False,
+        help_text=_('Erlaubt das Bieten von Einsätzen im Rahmen der Beitragsrunde.')
+    )
+
+    min_total_assignments_ratio = models.DecimalField(
+        _('Minimaler Anteil an Einsätzen'), max_digits=3, decimal_places=2, default=Decimal(1.0),
+        help_text=_('Minimaler Anteil der Gesamteinsätze, der geboten werden muss.')
+    )
+
+    min_core_assignments_ratio = models.DecimalField(
+        _('Minimaler Anteil an Kern-Einsätzen'), max_digits=3, decimal_places=2, default=Decimal(1.0),
+        help_text=_('Minimaler Anteil der Kern-Einsätze, der geboten werden muss.')
+    )
+
     def valid_selections(self):
         return self.selections.filter(subscription__in=self.subscriptions())
 
@@ -205,6 +220,8 @@ class ContributionSelection(models.Model):
     selected_option = models.ForeignKey(ContributionOption, on_delete=models.SET_NULL, related_name='selections',
                                         null=True, blank=True,)
     price = models.DecimalField(_('Betrag'), max_digits=9, decimal_places=2)
+    total_assignments = models.PositiveIntegerField(_('Gebotene Einsätze total'), default=0)
+    core_assignments = models.PositiveIntegerField(_('Gebotene Kern-Einsätze'), default=0)
     contact_me = models.BooleanField(_('Kontaktiert mich, falls es nicht reicht'),
                                      default=False, null=True, blank=True,)
     modification_date = models.DateField(_('Zuletzt geändert'), auto_now=True)
