@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block content %}
+    {% vocabulary "assignment_pl" as v_assignment_pl %}
     {% config "currency" as c_currency %}
     {% for contribution in contributions %}
         <h4>{{ contribution.round }}</h4>
@@ -15,8 +16,8 @@
         </p>
         {% if contribution.round.enable_assignments %}
             <p>
-                {% trans "Deine Einsätze:" %} {{ contribution.total_assignments }}<br>
-                {% trans "Davon im Kernbereich:" %} {{ contribution.core_assignments }}
+                {% blocktrans %}Deine {{ v_assignment_pl }}:{% endblocktrans %} {{ contribution.total_assignments }}<br>
+                {% blocktrans %}Davon im Kernbereich:{% endblocktrans %} {{ contribution.core_assignments }}
             </p>
         {% endif %}
         <p>
