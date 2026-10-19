@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block content %}
+    {% vocabulary "assignment_pl" as v_assignment_pl %}
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{% if message.level_tag == 'success' %}success{% else %}danger{% endif %}">{{ message }}</div>
@@ -133,7 +134,7 @@
         <a href="{% url 'jcr:admin-details' %}?round={{ round.id }}" class="btn btn-primary">Gebote ansehen</a>
     </div>
 
-    <h4 class="mt-5">Bilanz</h4>
+    <h4 class="mt-5">Bilanz finanzielle Beiträge</h4>
     <p>
         {% blocktrans %}Zielbetrag:{% endblocktrans %}
         <strong>{{ c_currency }} {{ round.effective_target_amount|floatformat:"2g" }}</strong>
@@ -177,4 +178,20 @@
             </div>
         {% endwith %}
     </div>
+    {% if round.enable_assignments %}
+    <h4 class="mt-5">Bilanz {{ v_assignment_pl }}</h4>
+    <p>
+        {% blocktrans %}Gebotene {{ v_assignment_pl }}:{% endblocktrans %}
+        <strong>{{ round.total_assignments_selected }}</strong><br>
+        {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
+        <strong>{{ round.core_assignments_selected }}</strong>
+
+    </p>
+    <p>
+        {% blocktrans %}{{ v_assignment_pl }} auf Abos ohne Gebot:{% endblocktrans %}
+        <strong>{{ round.total_assignments_unselected }}</strong><br>
+        {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
+        <strong>{{ round.core_assignments_unselected }}</strong>
+    </p>
+    {% endif %}
 {% endblock %}
