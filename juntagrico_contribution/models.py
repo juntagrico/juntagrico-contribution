@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from functools import cached_property
 from math import ceil
@@ -119,6 +120,34 @@ class ContributionRound(models.Model):
             return round(Decimal(self.target_multiplier) * self.total_nominal)
         return self.target_amount
 
+    @cached_property
+    def total_assignments_selected(self):
+        return self.valid_selections().aggregate(
+            total=Sum('total_assignments')
+        ).get('total') or 0
+
+    @cached_property
+    def core_assignments_selected(self):
+        return self.valid_selections().aggregate(
+            total=Sum('core_assignments')
+        ).get('total') or 0
+
+    @cached_property
+    def total_assignments_unselected(self):
+        # todo use business year start and end
+        query = Subscription.objects.annotate_required_assignments(start=date(2027, 1, 1), end=date(2027,12, 31))
+        return query.exclude(contributions__round=self).aggregate(
+            total=Sum('required_assignments')
+        ).get('total') or 0
+
+    @cached_property
+    def core_assignments_unselected(self):
+        # todo use business year start and end
+        query = Subscription.objects.annotate_required_assignments(start=date(2027, 1, 1), end=date(2027,12, 31))
+        return query.exclude(contributions__round=self).aggregate(
+            total=Sum('required_core_assignments')
+        ).get('total') or 0
+    
     def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)
         if self.cancellation_cutoff:
