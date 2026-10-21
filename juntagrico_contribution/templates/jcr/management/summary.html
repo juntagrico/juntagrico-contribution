@@ -181,6 +181,10 @@
     {% if round.enable_assignments %}
     <h4 class="mt-5">Bilanz {{ v_assignment_pl }}</h4>
     <p>
+        {% blocktrans %}Ziel {{ v_assignment_pl }}:{% endblocktrans %}
+        <strong>{{ round.target_assignments }}</strong>
+    </p>
+    <p>
         {% blocktrans %}Gebotene {{ v_assignment_pl }}:{% endblocktrans %}
         <strong>{{ round.total_assignments_selected }}</strong><br>
         {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
@@ -193,5 +197,23 @@
         {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
         <strong>{{ round.core_assignments_unselected }}</strong>
     </p>
+    <div class="progress">
+        {% with percentage=round.total_assignments_selected|percent:round.target_assignments %}
+            <div class="progress-bar bg-success" role="progressbar"
+                 style="width: {{ percentage|floatformat:0 }}%;"
+                 aria-valuenow="{{ round.total_assignments_selected|floatformat:0 }}"
+                 aria-valuemin="0">
+                {{ percentage|floatformat:-1 }}%
+            </div>
+        {% endwith %}
+        {% with percentage=round.total_assignments_unselected|percent:round.target_assignments %}
+            <div class="progress-bar bg-info" role="progressbar"
+                 style="width: {{ percentage|floatformat:0 }}%;"
+                 aria-valuenow="{{ round.total_assignments_unselected|floatformat:0 }}"
+                 aria-valuemin="0">
+                {{ percentage|floatformat:-1 }}%
+            </div>
+        {% endwith %}
+    </div>
     {% endif %}
 {% endblock %}
