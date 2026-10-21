@@ -120,6 +120,14 @@ class ContributionRound(models.Model):
         return self.target_amount
 
     @cached_property
+    def target_assignments(self):
+        parts = self.subscription_parts()
+        assignments = parts.aggregate(
+            assignments=Sum('type__required_assignments')
+        ).get('assignments')
+        return int(assignments or 0)
+    
+    @cached_property
     def total_assignments_selected(self):
         return self.valid_selections().aggregate(
             total=Sum('total_assignments')
@@ -134,16 +142,18 @@ class ContributionRound(models.Model):
     @cached_property
     def total_assignments_unselected(self):
         parts = self.subscription_parts().exclude(subscription__contributions__round=self)
-        return parts.aggregate(
-            total=Sum('required_assignments')
-        ).get('total') or 0
+        assignments = parts.aggregate(
+           assignments=Sum('type__required_assignments')                   
+        ).get('assignments')
+        return int(assignments or 0)
 
     @cached_property
     def core_assignments_unselected(self):
         parts = self.subscription_parts().exclude(subscription__contributions__round=self)
-        return parts.aggregate(
-            total=Sum('required_core_assignments')
-        ).get('total') or 0
+        assignments = parts.aggregate(
+            assignments=Sum('type__required_core_assignments')
+        ).get('assignments')
+        return int(assignments or 0)
     
     def _filter_by_date(self, parts: SimpleStateModelQuerySet):
         parts = parts.filter(deactivation_date=None)
