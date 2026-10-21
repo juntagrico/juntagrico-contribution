@@ -46,4 +46,4 @@ urlpatterns = [
 
 ## More
 
-Check the [documentation](doc/juntagrico_contribution_details.md) for more details.
+Check the [documentation](doc/details.md) for more details.
