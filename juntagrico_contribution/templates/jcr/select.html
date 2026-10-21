@@ -12,21 +12,17 @@
         {{ round.description|safe }}
     {% endif %}
     {% config "currency" as c_currency %}
-    {% if form.contribution %}
-        <div class="row">
-            <div class="col-12">
-                <p>
-                    {% blocktrans trimmed with contribution=form.contribution.price %}
-                        Bisheriges Gebot: <strong>{{ c_currency }} {{ contribution }}</strong>
-                    {% endblocktrans %}
-                </p>
-            </div>
-        </div>
-    {% endif %}
     <form id="jcr_selection_form" method="POST">
         {% csrf_token %}
         {% if round.enable_assignments %}
             <h3>{% trans "Finanzieller Beitrag" %}</h3>
+        {% endif %}
+        {% if form.contribution %}
+            <p>
+                {% blocktrans trimmed with contribution=form.contribution.price %}
+                    Bisheriges Gebot: <strong>{{ c_currency }} {{ contribution }}</strong>
+                {% endblocktrans %}
+            </p>
         {% endif %}
         <div class="row">
             {% for selection in form.get_selections %}
@@ -62,44 +58,69 @@
         {% if round.enable_assignments %}
             <h3>{% vocabulary "assignment_pl" %}</h3>
             <p>{% blocktrans %}Ich werde die folgende Anzahl an {{ v_assignment_pl }} leisten:{% endblocktrans %}</p>
+            {% if form.contribution %}
+                <p>
+                    {% blocktrans trimmed with total=form.contribution.total_assignments core=form.contribution.core_assignments %}
+                        Bisheriges Gebot: <strong>{{ total }} / {{ core }}</strong>
+                    {% endblocktrans %}
+                </p>
+            {% endif %}
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <div class="jcr-option jcr-option-custom">
                         <h4>{% blocktrans %}Total {{ v_assignment_pl }}{% endblocktrans %}</h4>
                         <div class="form-group">
                             <div class="d-flex align-items-center">
                                 <input type="range" class="custom-range form-range flex-grow-1" id="total_assignments" name="total_assignments"
-                                       min="{{ min_total_assignments }}" max="{{ max_assignments }}" value="{{ form.total_assignments.value|default_if_none:default_total_assignments }}"
+                                       min="{{ form.min_total_assignments }}" max="{{ form.max_assignments }}" value="{{ form.total_assignments.value|default_if_none:form.default_total_assignments }}"
                                        oninput="document.getElementById('total_assignments_display').innerText = this.value">
-                                <span id="total_assignments_display" class="flex-shrink-0 font-weight-bold" style="min-width: 2.5rem; text-align: right;">{{ form.total_assignments.value|default_if_none:default_total_assignments }}</span>
                             </div>
                             {% if form.total_assignments.errors %}
                                 {% for error in form.total_assignments.errors %}
                                     <p id="error_{{ forloop.counter }}_{{ form.total_assignments.auto_id }}" class="invalid-feedback d-block"><strong>{{ error }}</strong></p>
                                 {% endfor %}
                             {% endif %}
-                            <p class="mt-2">
-                                {% trans "Empfohlen" %}: {{ default_total_assignments }}<br>
-                                {% trans "Mindestens" %}: {{ min_total_assignments }}
-                            </p>
+                            <table class="table table-sm table-borderless mt-2 mb-0 text-right text-end">
+                                <tr>
+                                    <td>{% trans "Gewählt" %}</td>
+                                    <td>{% trans "Empfohlen" %}</td>
+                                    <td>{% trans "Mindestens" %}</td>
+                                </tr>
+                                <tr >
+                                    <td id="total_assignments_display" class="font-weight-bold fw-bold">{{ form.total_assignments.value|default_if_none:form.default_total_assignments }}</td>
+                                    <td>{{ form.default_total_assignments }}</td>
+                                    <td>{{ form.min_total_assignments }}</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <div class="jcr-option jcr-option-custom">
                         <h4>{% trans "Davon im Kernbereich" %}</h4>
                         <div class="form-group">
                             <div class="d-flex align-items-center">
                                 <input type="range" class="custom-range form-range flex-grow-1" id="core_assignments" name="core_assignments"
-                                       min="{{ min_core_assignments }}" max="{{ max_assignments }}" value="{{ form.core_assignments.value|default_if_none:default_core_assignments }}"
+                                       min="{{ form.min_core_assignments }}" max="{{ form.max_assignments }}" value="{{ form.core_assignments.value|default_if_none:form.default_core_assignments }}"
                                        oninput="document.getElementById('core_assignments_display').innerText = this.value">
-                                <span id="core_assignments_display" class="flex-shrink-0 font-weight-bold" style="min-width: 2.5rem; text-align: right;">{{ form.core_assignments.value|default_if_none:default_core_assignments }}</span>
                             </div>
-                            <p>
-                                {% trans "Empfohlen" %}: {{ default_core_assignments }}<br>
-                                {% trans "Mindestens" %}: {{ min_core_assignments }}
-                            </p>
-
+                            {% if form.core_assignments.errors %}
+                                {% for error in form.core_assignments.errors %}
+                                    <p id="error_{{ forloop.counter }}_{{ form.core_assignments.auto_id }}" class="invalid-feedback d-block"><strong>{{ error }}</strong></p>
+                                {% endfor %}
+                            {% endif %}
+                            <table class="table table-sm table-borderless mt-2 mb-0 text-right text-end">
+                                <tr>
+                                    <td>{% trans "Gewählt" %}</td>
+                                    <td>{% trans "Empfohlen" %}</td>
+                                    <td>{% trans "Mindestens" %}</td>
+                                </tr>
+                                <tr>
+                                    <td id="core_assignments_display" class="font-weight-bold fw-bold">{{ form.core_assignments.value|default_if_none:form.default_core_assignments }}</td>
+                                    <td>{{ form.default_core_assignments }}</td>
+                                    <td>{{ form.min_core_assignments }}</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>

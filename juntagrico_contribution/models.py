@@ -1,4 +1,3 @@
-from datetime import date
 from decimal import Decimal
 from functools import cached_property
 from math import ceil
@@ -134,17 +133,15 @@ class ContributionRound(models.Model):
 
     @cached_property
     def total_assignments_unselected(self):
-        # todo use business year start and end
-        query = Subscription.objects.annotate_required_assignments(start=date(2027, 1, 1), end=date(2027,12, 31))
-        return query.exclude(contributions__round=self).aggregate(
+        parts = self.subscription_parts().exclude(subscription__contributions__round=self)
+        return parts.aggregate(
             total=Sum('required_assignments')
         ).get('total') or 0
 
     @cached_property
     def core_assignments_unselected(self):
-        # todo use business year start and end
-        query = Subscription.objects.annotate_required_assignments(start=date(2027, 1, 1), end=date(2027,12, 31))
-        return query.exclude(contributions__round=self).aggregate(
+        parts = self.subscription_parts().exclude(subscription__contributions__round=self)
+        return parts.aggregate(
             total=Sum('required_core_assignments')
         ).get('total') or 0
     
