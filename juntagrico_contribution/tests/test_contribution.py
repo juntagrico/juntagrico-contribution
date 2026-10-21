@@ -1,6 +1,6 @@
 from django.urls import reverse
 from juntagrico.tests import JuntagricoTestCase
-from . import ContributionTestCase
+from . import ContributionTestCase, ContributionTestCase, AssignmentMixin
 from ..models import ContributionRound
 from decimal import Decimal
 
@@ -78,6 +78,12 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
             for part in unselected_parts
         )
         self.assertEqual(self.contribution_round.total_unselected, expected_total)
+
+
+class ContributionWithAssignmentsTests(AssignmentMixin, ContributionTests):
+    def test_member_views(self):
+        self.assertGet(reverse('jcr:select'))
+        self.assertGet(reverse('jcr:view'))
 
 
 class ClosedRoundTests(ContributionTests):
