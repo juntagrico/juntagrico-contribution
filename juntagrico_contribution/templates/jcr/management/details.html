@@ -18,6 +18,7 @@
 
 {% block list %}
     {% config "currency" as c_currency %}
+    {% vocabulary "assignment_pl" as v_assignment_pl %}
     <table id="filter-table" class="list table">
         <thead>
             <tr>
@@ -26,13 +27,18 @@
                         {% trans "Auswahl" %}
                     </th>
                     <th class="filter">
-                        {% blocktrans %}Beitrag [{{ c_currency }}] (Nominal){% endblocktrans %}
+                        {% blocktrans %}Beitrag (Nominal){% endblocktrans %}
+                    </th>
+                    {% if round.enable_assignments %}
+                    <th>
+                        {{ v_assignment_pl }}
+                    </th>
+                    {% endif %}
+                    <th>
+                        {% trans "Kontaktieren" %}
                     </th>
                     <th class="filter">
-                        {% trans "Kann kontaktiert werden" %}
-                    </th>
-                    <th class="filter">
-                        {% trans "Zuletzt geändert am" %}
+                        {% trans "Geändert" %}
                     </th>
                     <th class="filter">
                         {% vocabulary "subscription" %}
@@ -53,13 +59,18 @@
                         {% trans "Auswahl" %}
                     </th>
                     <th>
-                        {% blocktrans %}Beitrag [{{ c_currency }}]{% endblocktrans %}
+                        {% blocktrans %}Beitrag{% endblocktrans %}
+                    </th>
+                    {% if round.enable_assignments %}
+                    <th>
+                        {{ v_assignment_pl }}
+                    </th>
+                    {% endif %}
+                    <th>
+                        {% trans "Kontaktieren" %}
                     </th>
                     <th>
-                        {% trans "Kann kontaktiert werden" %}
-                    </th>
-                    <th>
-                        {% trans "Zuletzt geändert am" %}
+                        {% trans "Geändert" %}
                     </th>
                     <th>
                         {% vocabulary "subscription" %}
@@ -93,6 +104,11 @@
                                 <td>
                                     {{ selection.price|floatformat:'2g' }} ({{ selection.get_nominal_price|floatformat:'2g' }})
                                 </td>
+                                {% if round.enable_assignments %}
+                                    <td>
+                                        {{ selection.total_assignments }} / {{ selection.core_assignments }}
+                                    </td>
+                                {% endif %}
                                 <td>
                                     {{ selection.contact_me|yesno:_("Ja,Nein") }}
                                 </td>
@@ -107,6 +123,11 @@
                             <td>
                                 -
                             </td>
+                            {% if round.enable_assignments %}
+                            <td>
+                                -
+                            </td>
+                            {% endif %}
                             <td>
                                 -
                             </td>
