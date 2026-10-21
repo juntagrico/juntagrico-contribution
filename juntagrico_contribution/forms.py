@@ -2,6 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
 from django.conf import settings
+from django.db.models.aggregates import Sum
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -34,7 +35,7 @@ class ContributionSelectionForm(forms.Form):
     selection = forms.ChoiceField(widget=forms.RadioSelect)
     contact_me = forms.BooleanField(required=False)
 
-    def __init__(self, contribution_round, subscription, default_total_assignments, default_core_assignments, *args, **kwargs):
+    def __init__(self, contribution_round, subscription, *args, **kwargs):
         self.contribution_round = contribution_round
         self.subscription = subscription
         self.contribution = self.contribution_round.selections.filter(subscription=self.subscription).first()
@@ -48,10 +49,23 @@ class ContributionSelectionForm(forms.Form):
             self.fields['contact_me'].initial = self.contribution.contact_me
 
         if self.contribution_round.enable_assignments:
-            self.fields['total_assignments'] = forms.IntegerField(required=False, 
-                                                                  initial=self.contribution.total_assignments if self.contribution else default_total_assignments)
-            self.fields['core_assignments'] = forms.IntegerField(required=False,
-                                                                 initial=self.contribution.core_assignments if self.contribution else default_core_assignments)
+            required = self.contribution_round.filter_parts(self.subscription.parts).aggregate(
+                total_assignments=Sum('type__required_assignments'),
+                core_assignments=Sum('type__required_core_assignments')
+            )
+            self.default_total_assignments = int(required.get('total_assignments'))
+            self.default_core_assignments = int(required.get('core_assignments'))
+            self.min_total_assignments = int(
+                self.default_total_assignments * float(self.contribution_round.min_total_assignments_ratio))
+            self.min_core_assignments = int(
+                self.default_core_assignments * float(self.contribution_round.min_core_assignments_ratio))
+            self.max_assignments = 5 * self.default_total_assignments
+            self.fields['total_assignments'] = forms.IntegerField(
+                required=False,
+                initial=self.contribution.total_assignments if self.contribution else self.default_total_assignments)
+            self.fields['core_assignments'] = forms.IntegerField(
+                required=False,
+                initial=self.contribution.core_assignments if self.contribution else self.default_core_assignments)
 
     def get_choices(self):
         for option in self.visible_options():
@@ -75,19 +89,31 @@ class ContributionSelectionForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         selection = cleaned_data.get('selection')
+
+        # validate other amount
         if selection == 'other':
             other_amount = cleaned_data.get('other_amount')
             if other_amount is None:
-                raise forms.ValidationError({'other_amount': _('Gib einen Betrag ein')})
+                self.add_error('other_amount', _('Gib einen Betrag ein'))
             minimum_amount = 0
             if self.contribution_round.minimum_amount:
                 minimum_amount = self.contribution_round.minimum_amount.price_for(self.subscription)
             if self.contribution:
                 minimum_amount = max(minimum_amount, self.contribution.price)
-            if other_amount < minimum_amount:
-                raise forms.ValidationError({'other_amount': _('Der Mindestbetrag ist {0:.2f} {1}').format(
+            if other_amount is not None and other_amount < minimum_amount:
+                self.add_error('other_amount', _('Der Mindestbetrag ist {0:.2f} {1}').format(
                     minimum_amount, Config.currency()
-                )})
+                ))
+
+        # validate assignments
+        if self.contribution_round.enable_assignments:
+            if self.contribution:
+                total_assignments = cleaned_data.get('total_assignments')
+                core_assignments = cleaned_data.get('core_assignments')
+                if total_assignments is not None and total_assignments < self.contribution.total_assignments:
+                    self.add_error('total_assignments', _('Neues Gebot darf nicht kleiner als das bisherige Gebot sein'))
+                if core_assignments is not None and core_assignments < self.contribution.core_assignments:
+                    self.add_error('core_assignments', _('Neues Gebot darf nicht kleiner als das bisherige Gebot sein'))
 
     def save(self):
         selection = self.cleaned_data['selection']
