@@ -1,6 +1,6 @@
 from django.urls import reverse
 from juntagrico.tests import JuntagricoTestCase
-from . import ContributionTestCase, ContributionTestCase, AssignmentMixin
+from . import ContributionTestCase, AssignmentMixin
 from ..models import ContributionRound
 from decimal import Decimal
 
