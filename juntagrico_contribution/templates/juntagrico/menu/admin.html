@@ -3,12 +3,13 @@
 {% load juntagrico.config %}
 {% block extend %}
     {% if perms.juntagrico_contribution.view_contributionround %}
+        {% with match=request.resolver_match %}
         <li class="nav-item">
-            <a class="nav-link collapsed" data-toggle="collapse" href="#contribution">
+            <a class="nav-link{% if match.namespace != 'jcr' or 'admin' not in match.url_name %} collapsed{% endif %}" data-toggle="collapse" href="#contribution">
                 <i class="bi bi-caret-down turn"></i>
                 {% trans "Beitragsrunden" %}
             </a>
-            <div class="collapse" id="contribution">
+            <div class="collapse{% if match.namespace == 'jcr' and 'admin' in match.url_name %} show{% endif %}" id="contribution">
                 <ul class="nav flex-column admin-menu subadmin-menu">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'jcr:admin-list' %}">
@@ -21,6 +22,7 @@
                 </ul>
             </div>
         </li>
+        {% endwith %}
     {% endif %}
     {{ block.super }}
 {% endblock %}
