@@ -5,6 +5,6 @@ recursive-include juntagrico_contribution/templates *
 include requirements.txt
 global-exclude *.pyc
 exclude manage.py
-exclude testsettings*.py
-exclude testurls*.py
+recursive-exclude settings *
+recursive-exclude urls *
 recursive-exclude test *
