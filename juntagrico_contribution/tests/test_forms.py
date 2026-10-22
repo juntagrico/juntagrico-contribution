@@ -3,6 +3,20 @@ from juntagrico_contribution.models import ContributionSelection
 from . import ContributionTestCase, AssignmentMixin
 
 
+class FormTests(ContributionTestCase):
+    def get_form(self, option=None):
+        return ContributionSelectionForm(self.contribution_round, self.sub, {
+            'selection': option or self.option1.pk,
+        })
+
+    def test_valid(self):
+        form = self.get_form(self.option2.pk)
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        contribution = self.sub.contributions.first()
+        self.assertEqual(contribution.selected_option, self.option2)
+
+
 class AssignmentValidationTests(AssignmentMixin, ContributionTestCase):
     def get_form(self, total, core):
         return ContributionSelectionForm(self.contribution_round, self.sub, {

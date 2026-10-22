@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block content %}
+    {% requires_core as b_requires_core %}
     {% vocabulary "assignment_pl" as v_assignment_pl %}
     {% if messages %}
         {% for message in messages %}
@@ -186,16 +187,21 @@
     </p>
     <p>
         {% blocktrans %}Gebotene {{ v_assignment_pl }}:{% endblocktrans %}
-        <strong>{{ round.total_assignments_selected }}</strong><br>
-        {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
-        <strong>{{ round.core_assignments_selected }}</strong>
-
+        <strong>{{ round.total_assignments_selected }}</strong>
+        {% if b_requires_core %}
+            <br>
+            {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
+            <strong>{{ round.core_assignments_selected }}</strong>
+        {% endif %}
     </p>
     <p>
         {% blocktrans %}{{ v_assignment_pl }} auf Abos ohne Gebot:{% endblocktrans %}
-        <strong>{{ round.total_assignments_unselected }}</strong><br>
-        {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
-        <strong>{{ round.core_assignments_unselected }}</strong>
+        <strong>{{ round.total_assignments_unselected }}</strong>
+        {% if b_requires_core %}
+            <br>
+            {% blocktrans %}Davon im Kernbereich:{% endblocktrans %}
+            <strong>{{ round.core_assignments_unselected }}</strong>
+        {% endif %}
     </p>
     <div class="progress">
         {% with percentage=round.total_assignments_selected|percent:round.target_assignments %}

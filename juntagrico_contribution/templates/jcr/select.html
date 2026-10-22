@@ -61,9 +61,15 @@
             <p>{% blocktrans %}Ich werde die folgende Anzahl an {{ v_assignment_pl }} leisten:{% endblocktrans %}</p>
             {% if form.contribution %}
                 <p>
-                    {% blocktrans trimmed with total=form.contribution.total_assignments core=form.contribution.core_assignments %}
-                        Bisheriges Gebot: <strong>{{ total }} / {{ core }}</strong>
-                    {% endblocktrans %}
+                    {% if form.core_assignments %}
+                        {% blocktrans trimmed with total=form.contribution.total_assignments core=form.contribution.core_assignments %}
+                            Bisheriges Gebot: <strong>{{ total }} / {{ core }}</strong>
+                        {% endblocktrans %}
+                    {% else %}
+                        {% blocktrans trimmed with total=form.contribution.total_assignments %}
+                            Bisheriges Gebot: <strong>{{ total }}</strong>
+                        {% endblocktrans %}
+                    {% endif %}
                 </p>
             {% endif %}
             <div class="row">
@@ -98,8 +104,7 @@
                         </div>
                     </div>
                 </div>
-                {% requires_core as b_requires_core %}
-                {% if b_requires_core %}
+                {% if form.core_assignments %}
                     <div class="col-md-6">
                         <div class="jcr-option jcr-option-custom">
                             <h4>{% trans "Davon im Kernbereich" %}</h4>
