@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
+from juntagrico.templatetags.juntagrico.common import requires_core
+
 from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
 
 
@@ -54,18 +56,20 @@ class ContributionSelectionForm(forms.Form):
                 core_assignments=Sum('type__required_core_assignments')
             )
             self.default_total_assignments = int(required.get('total_assignments'))
-            self.default_core_assignments = int(required.get('core_assignments'))
+
             self.min_total_assignments = int(
                 self.default_total_assignments * float(self.contribution_round.min_total_assignments_ratio))
-            self.min_core_assignments = int(
-                self.default_core_assignments * float(self.contribution_round.min_core_assignments_ratio))
             self.max_assignments = 5 * self.default_total_assignments
             self.fields['total_assignments'] = forms.IntegerField(
                 required=False,
                 initial=self.contribution.total_assignments if self.contribution else self.default_total_assignments)
-            self.fields['core_assignments'] = forms.IntegerField(
-                required=False,
-                initial=self.contribution.core_assignments if self.contribution else self.default_core_assignments)
+            if requires_core():
+                self.default_core_assignments = int(required.get('core_assignments'))
+                self.min_core_assignments = int(
+                    self.default_core_assignments * float(self.contribution_round.min_core_assignments_ratio))
+                self.fields['core_assignments'] = forms.IntegerField(
+                    required=False,
+                    initial=self.contribution.core_assignments if self.contribution else self.default_core_assignments)
 
     def get_choices(self):
         for option in self.visible_options():
@@ -136,8 +140,8 @@ class ContributionSelectionForm(forms.Form):
                 selected_option=selected_option,
                 price=price,
                 contact_me=self.cleaned_data['contact_me'],
-                total_assignments=total_assignments,
-                core_assignments=core_assignments,
+                total_assignments=total_assignments or 0,
+                core_assignments=core_assignments or 0,
             ),
             subscription=self.subscription,
             round=self.contribution_round

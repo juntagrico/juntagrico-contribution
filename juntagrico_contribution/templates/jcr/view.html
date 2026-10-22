@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load juntagrico.common %}
 {% load juntagrico.config %}
 {% load i18n static %}
 
@@ -16,8 +17,12 @@
         </p>
         {% if contribution.round.enable_assignments %}
             <p>
-                {% blocktrans %}Deine {{ v_assignment_pl }}:{% endblocktrans %} {{ contribution.total_assignments }}<br>
-                {% blocktrans %}Davon im Kernbereich:{% endblocktrans %} {{ contribution.core_assignments }}
+                {% blocktrans %}Deine {{ v_assignment_pl }}:{% endblocktrans %} {{ contribution.total_assignments }}
+                {% requires_core as b_requires_core %}
+                {% if b_requires_core %}
+                    <br>
+                    {% blocktrans %}Davon im Kernbereich:{% endblocktrans %} {{ contribution.core_assignments }}
+                {% endif %}
             </p>
         {% endif %}
         <p>
