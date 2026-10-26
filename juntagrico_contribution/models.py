@@ -23,6 +23,7 @@ class ContributionRound(models.Model):
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Eindeutiger Name dieser Beitragsrunde'))
     description = models.TextField(_('Beschreibung'), default='', blank=True)
+    description_assignments = models.TextField(_('Beschreibung Einsätze'), default='', blank=True)
     target_amount = models.DecimalField(_('Ziel-Betrag'), max_digits=9, decimal_places=2)
     target_multiplier = models.DecimalField(_('Ziel-Multiplikator'), max_digits=4, decimal_places=3, null=True, blank=True,
                                             help_text=_('Alternativ zum Ziel-Betrag kann hier ein Multiplikator angegeben werden, der mit Nominalbetrag multipliziert wird. Ersetzt den Ziel-Betrag, wenn gesetzt.'))
@@ -67,6 +68,10 @@ class ContributionRound(models.Model):
         help_text=_('Minimaler Anteil der Kern-Einsätze, der geboten werden muss.')
     )
 
+    target_assignments = models.PositiveIntegerField(
+        _('Ziel-Einsätze'), blank=True, null=True, 
+        help_text=_('Anzahl der angestrebten Einsätze. Falls nicht angegeben, werden die nominalen Einsätze gemäss Abos verwendet.'),)
+  
     def valid_selections(self):
         return self.selections.filter(subscription__in=self.subscriptions())
 
@@ -120,7 +125,11 @@ class ContributionRound(models.Model):
         return self.target_amount
 
     @cached_property
-    def target_assignments(self):
+    def effective_target_assignments(self):
+        if self.target_assignments is not None:
+            return self.target_assignments
+
+        # if target_assignments is not set, calculate target assignments based on subscription parts
         parts = self.subscription_parts()
         assignments = parts.aggregate(
             assignments=Sum('type__required_assignments')
