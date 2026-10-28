@@ -56,6 +56,24 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
             self.contribution_round.target_amount
         )
 
+    def test_effective_target_assignments_explicit(self):
+        self.contribution_round.target_assignments = 123
+        self.contribution_round.save()
+        self.assertEqual(self.contribution_round.effective_target_assignments, 123)
+
+    def test_effective_target_assignments_zero_is_explicit(self):
+        self.contribution_round.target_assignments = 0
+        self.contribution_round.save()
+        self.assertEqual(self.contribution_round.effective_target_assignments, 0)
+
+    def test_effective_target_assignments_from_parts(self):
+        self.contribution_round.target_assignments = None
+        self.contribution_round.save()
+        expected = sum(
+            part.type.required_assignments for part in self.contribution_round.subscription_parts()
+        )
+        self.assertEqual(self.contribution_round.effective_target_assignments, int(expected))
+
     def test_total_unselected_without_default_amount(self):
         self.contribution_round.default_amount = None
         self.contribution_round.save()
