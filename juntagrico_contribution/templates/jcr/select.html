@@ -56,6 +56,11 @@
                 </div>
             {% endif %}
         </div>
+        {% if form.selection.errors %}
+            {% for error in form.selection.errors %}
+                <p class="invalid-feedback d-block mb-3"><strong>{{ error }}</strong></p>
+            {% endfor %}
+        {% endif %}
         {% if round.enable_assignments %}
             <h3>{% vocabulary "assignment_pl" %}</h3>
             {% if round.description_assignments %}
