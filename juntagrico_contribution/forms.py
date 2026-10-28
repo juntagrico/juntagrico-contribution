@@ -34,7 +34,10 @@ class RoundForm(forms.Form):
 
 
 class ContributionSelectionForm(forms.Form):
-    selection = forms.ChoiceField(widget=forms.RadioSelect)
+    selection = forms.ChoiceField(
+        widget=forms.RadioSelect,
+        error_messages={'required': _('Wähle eine Option')},
+    )
     contact_me = forms.BooleanField(required=False)
 
     def __init__(self, contribution_round, subscription, *args, **kwargs):
