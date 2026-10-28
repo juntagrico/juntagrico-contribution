@@ -29,7 +29,8 @@ class RoundAdmin(SortableAdminBase, BaseAdmin):
             None,
             {'fields': [
                 'status', 'name', 'description', 'target_amount', 'target_multiplier',
-                'other_amount', 'minimum_amount', 'default_amount', 'enable_assignments', 
+                'other_amount', 'minimum_amount', 'default_amount', 'enable_assignments',
+                'description_assignments', 'target_assignments',
                 'min_total_assignments_ratio', 'min_core_assignments_ratio', 'contact_me_text'
             ]},
         ),
