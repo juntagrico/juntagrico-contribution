@@ -141,6 +141,17 @@
                     </div>
                 {% endif %}
             </div>
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="assignment-progress-classic" id="assignment_progress"
+                         data-max="{{ form.max_assignments }}"
+                         data-core-src="{% images "single_core" %}"
+                         data-full-src="{% images "single_full" %}"
+                         data-empty-src="{% images "single_empty" %}"
+                         data-core-label="{% trans "Kernbereich" %}"
+                         data-full-label="{% trans "anderer Tätigkeitsbereich" %}"></div>
+                </div>
+            </div>
         {% endif %}
         <div class="row">
             <div class="col-md-12">
@@ -156,6 +167,49 @@
             </div>
         </div>
     </form>
+    {% if round.enable_assignments %}
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const box = document.getElementById('assignment_progress');
+            const total = document.getElementById('total_assignments');
+            const core = document.getElementById('core_assignments');
+            if (!box || !total) return;
+            const d = box.dataset;
+            const max = parseInt(d.max, 10);
+
+            function img(kind) {
+                const el = document.createElement('img');
+                el.src = d[kind + 'Src'];
+                el.alt = el.title = d[kind + 'Label'];
+                return el;
+            }
+
+            function constrain() {
+                if (!core) return;
+                core.max = total.value;
+                if (parseInt(core.value, 10) > parseInt(total.value, 10)) {
+                    core.value = total.value;
+                }
+                document.getElementById('core_assignments_display').innerText = core.value;
+            }
+
+            function render() {
+                constrain();
+                const t = Math.min(parseInt(total.value, 10) || 0, max);
+                const c = Math.min(core ? parseInt(core.value, 10) || 0 : 0, t);
+                const frag = document.createDocumentFragment();
+                for (let i = 0; i < max; i++) {
+                    frag.appendChild(img(i < c ? 'core' : i < t ? 'full' : 'empty'));
+                }
+                box.replaceChildren(frag);
+            }
+
+            total.addEventListener('input', render);
+            if (core) core.addEventListener('input', render);
+            render();
+        });
+        </script>
+    {% endif %}
 {% endblock %}
 
 {% block styles %}
