@@ -9,14 +9,14 @@
 
 {% block content %}
     {% vocabulary "assignment_pl" as v_assignment_pl %}
-    {% if round.description %}
-        {{ round.description|safe }}
-    {% endif %}
     {% config "currency" as c_currency %}
     <form id="jcr_selection_form" method="POST">
         {% csrf_token %}
         {% if round.enable_assignments %}
             <h3>{% trans "Finanzieller Beitrag" %}</h3>
+        {% endif %}
+        {% if round.description %}
+            {{ round.description|safe }}
         {% endif %}
         {% if form.contribution %}
             <p>
@@ -58,7 +58,10 @@
         </div>
         {% if round.enable_assignments %}
             <h3>{% vocabulary "assignment_pl" %}</h3>
-            <p>{% blocktrans %}Ich werde die folgende Anzahl an {{ v_assignment_pl }} leisten:{% endblocktrans %}</p>
+            {% if round.description_assignments %}
+                {{ round.description_assignments|safe }}
+            {% endif %}
+
             {% if form.contribution %}
                 <p>
                     {% if form.core_assignments %}
