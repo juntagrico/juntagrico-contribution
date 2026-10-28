@@ -59,7 +59,7 @@ class ContributionSelectionForm(forms.Form):
 
             self.min_total_assignments = int(
                 self.default_total_assignments * float(self.contribution_round.min_total_assignments_ratio))
-            self.max_assignments = 5 * self.default_total_assignments
+            self.max_assignments = 54   # arbitrary value due to progress bar display
             self.fields['total_assignments'] = forms.IntegerField(
                 required=False,
                 initial=self.contribution.total_assignments if self.contribution else self.default_total_assignments)
