@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load juntagrico.common %}
 {% load juntagrico.config %}
+{% load crispy_forms_tags %}
 
 {% block page_title %}
     <h3>
@@ -68,23 +69,29 @@
                 </button>
             </form>
         </div>
-        {% if perms.juntagrico_contribution.change_contributionround %}
-            <p>
-                {% blocktrans trimmed %}
-                    Die Ergebnisse können nun als Aufschläge auf die Abonnements übertragen werden.
-                {% endblocktrans %}
-            </p>
+        {% if perms.juntagrico.add_subscriptionsurcharge %}
+            <h4>Ergebnisse als Aufschläge übertragen</h4>
             {% if has_surcharges %}
+                <p>
+                    {% blocktrans trimmed %}
+                        Die Ergebnisse der Bieterrunde wurden bereits als Aufschläge auf die Abos übertragen.
+                    {% endblocktrans %}
+                </p>
                 <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
                     {% csrf_token %}
                     <button type="submit" name="undo" value="1" class="btn btn-outline-danger">
-                        {% trans "Aufschläge entfernen" %}
+                        {% trans "Bestehende Aufschläge entfernen" %}
                     </button>
                 </form>
             {% else %}
-                <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
+                <p>
+                    {% blocktrans trimmed %}
+                        Die Ergebnisse der Bieterrunde können nun als Aufschläge auf die Abos übertragen werden.
+                    {% endblocktrans %}
+                </p>
+                <form class="col-md-3 pl-0" action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
                     {% csrf_token %}
-                    {{ surcharge_transfer_form }}
+                    {{ surcharge_transfer_form | crispy }}
                     <button type="submit" class="btn btn-info">
                         {% trans "Ergebnisse übertragen" %}
                     </button>
