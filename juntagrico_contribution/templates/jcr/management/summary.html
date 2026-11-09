@@ -14,11 +14,6 @@
 {% block content %}
     {% requires_core as b_requires_core %}
     {% vocabulary "assignment_pl" as v_assignment_pl %}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{% if message.level_tag == 'success' %}success{% else %}danger{% endif %}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
 
     {% config "currency" as c_currency %}
     <h4>Status</h4>
