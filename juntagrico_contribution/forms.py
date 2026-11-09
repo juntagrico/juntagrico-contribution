@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
-from juntagrico.entity.subs import SubscriptionSurcharge
+from juntagrico.entity.subs import SubscriptionPart, SubscriptionSurcharge
 from juntagrico.templatetags.juntagrico.common import requires_core
 
 from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
@@ -166,34 +166,47 @@ class SurchargeTransferForm(forms.Form):
 
     @transaction.atomic
     def save(self, contribution_round):
-        created = 0
+        selections = list(contribution_round.valid_selections().select_related('subscription'))
+        if not selections:
+            return 0
+
         assignments_enabled = contribution_round.enable_assignments
         core_assignments_enabled = assignments_enabled and requires_core()
-        for selection in contribution_round.valid_selections():
-            aggregates = {'nominal_price': Sum('type__price')}
-            if assignments_enabled:
-                aggregates['nominal_assignments'] = Sum('type__required_assignments')
-            if core_assignments_enabled:
-                aggregates['nominal_core_assignments'] = Sum('type__required_core_assignments')
-            nominal_values = selection.get_parts().aggregate(**aggregates)
-            amount = selection.price - (nominal_values['nominal_price'] or 0)
+        aggregates = {'nominal_price': Sum('type__price')}
+        if assignments_enabled:
+            aggregates['nominal_assignments'] = Sum('type__required_assignments')
+        if core_assignments_enabled:
+            aggregates['nominal_core_assignments'] = Sum('type__required_core_assignments')
+        nominal_values = {
+            values['subscription_id']: values
+            for values in contribution_round.filter_parts(SubscriptionPart.objects)
+            .filter(subscription_id__in=[selection.subscription_id for selection in selections])
+            .values('subscription_id')
+            .annotate(**aggregates)
+        }
+
+        surcharges = []
+        for selection in selections:
+            nominal = nominal_values.get(selection.subscription_id, {})
+            amount = selection.price - (nominal.get('nominal_price') or 0)
             total_assignments = (
-                selection.total_assignments - (nominal_values['nominal_assignments'] or 0)
+                selection.total_assignments - (nominal.get('nominal_assignments') or 0)
                 if assignments_enabled else 0
             )
             core_assignments = (
-                selection.core_assignments - (nominal_values['nominal_core_assignments'] or 0)
+                selection.core_assignments - (nominal.get('nominal_core_assignments') or 0)
                 if core_assignments_enabled else 0
             )
 
-            surcharge = SubscriptionSurcharge.objects.create(
+            surcharges.append(SubscriptionSurcharge(
                 subscription=selection.subscription,
                 description=self.cleaned_data['description'],
                 amount=amount,
                 required_assignments=total_assignments,
                 required_core_assignments=core_assignments,
                 date=self.cleaned_data['date'],
-            )
-            contribution_round.surcharges.add(surcharge)
-            created += 1
-        return created
+            ))
+
+        SubscriptionSurcharge.objects.bulk_create(surcharges)
+        contribution_round.surcharges.add(*surcharges)
+        return len(surcharges)
