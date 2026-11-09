@@ -52,7 +52,7 @@ def set_status(request, round_id):
 
 
 @require_POST
-@permission_required('juntagrico_contribution.change_contributionround')
+@permission_required('juntagrico.add_subscriptionsurcharge')
 def transfer_surcharge(request, round_id):
     contribution_round = get_object_or_404(ContributionRound, id=round_id)
     if contribution_round.status != ContributionRound.STATUS_CLOSED:
