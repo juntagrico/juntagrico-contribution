@@ -1,12 +1,16 @@
+from datetime import date
+
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
-from django.conf import settings
+from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
+from juntagrico.entity.subs import SubscriptionPart, SubscriptionSurcharge
 from juntagrico.templatetags.juntagrico.common import requires_core
 
 from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
@@ -151,56 +155,58 @@ class ContributionSelectionForm(forms.Form):
         )
 
 
-class BillTransferForm(forms.Form):
-    business_year = forms.ModelChoiceField(queryset=None, required=True, empty_label=None, label=_('Geschäftsjahr'))
-    bill_item_type = forms.ModelChoiceField(queryset=None, required=True, label=_('Rechnungselement-Typ'))
+class SurchargeTransferForm(forms.Form):
+    description = forms.CharField(label=_('Beschreibung'), max_length=255, initial=_('Beitragsrunde'))
+    date = forms.DateField(label=_('Verrechnungsdatum'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.enabled = 'juntagrico_billing' in settings.INSTALLED_APPS
-        if self.enabled:
-            from juntagrico_billing.models import bill
-            self.fields["business_year"].queryset = bill.BusinessYear.objects.all()
-            self.fields["bill_item_type"].queryset = bill.BillItemType.objects.all()
+        next_year = timezone.localdate().year + 1
+        self.fields['date'].initial = date(next_year, 1, 1)
 
+    @transaction.atomic
     def save(self, contribution_round):
-        failed = True
-        if self.enabled:
-            from juntagrico_billing.models.bill import Bill, BillItem
-            failed = []
-            for selection in contribution_round.valid_selections():
-                bill = Bill.objects.filter(
-                    member=selection.subscription.primary_member,
-                    business_year=self.cleaned_data['business_year'],
-                ).first()
-                if not bill:
-                    failed.append(selection.subscription.primary_member)
-                    continue
-                amount = selection.price - selection.get_nominal_price()
+        selections = list(contribution_round.valid_selections().select_related('subscription'))
+        if not selections:
+            return 0
 
-                # skip zero-amount bill items
-                if amount == 0:
-                    continue
+        assignments_enabled = contribution_round.enable_assignments
+        core_assignments_enabled = assignments_enabled and requires_core()
+        aggregates = {'nominal_price': Sum('type__price')}
+        if assignments_enabled:
+            aggregates['nominal_assignments'] = Sum('type__required_assignments')
+        if core_assignments_enabled:
+            aggregates['nominal_core_assignments'] = Sum('type__required_core_assignments')
+        nominal_values = {
+            values['subscription_id']: values
+            for values in contribution_round.filter_parts(SubscriptionPart.objects)
+            .filter(subscription_id__in=[selection.subscription_id for selection in selections])
+            .values('subscription_id')
+            .annotate(**aggregates)
+        }
 
-                if selection.selected_option:
-                    description = selection.selected_option.name
-                else:
-                    description = ''
+        surcharges = []
+        for selection in selections:
+            nominal = nominal_values.get(selection.subscription_id, {})
+            amount = selection.price - (nominal.get('nominal_price') or 0)
+            total_assignments = (
+                selection.total_assignments - (nominal.get('nominal_assignments') or 0)
+                if assignments_enabled else 0
+            )
+            core_assignments = (
+                selection.core_assignments - (nominal.get('nominal_core_assignments') or 0)
+                if core_assignments_enabled else 0
+            )
 
-                BillItem.objects.update_or_create(
-                    bill=bill,
-                    custom_item_type=self.cleaned_data['bill_item_type'],
-                    defaults={
-                        'amount': amount,
-                        'description': description,
-                    }
-                )
-        return failed
+            surcharges.append(SubscriptionSurcharge(
+                subscription=selection.subscription,
+                description=self.cleaned_data['description'],
+                amount=amount,
+                required_assignments=total_assignments,
+                required_core_assignments=core_assignments,
+                date=self.cleaned_data['date'],
+            ))
 
-    def delete(self, contribution_round):
-        if self.enabled:
-            from juntagrico_billing.models.bill import BillItem
-            BillItem.objects.filter(
-                custom_item_type=self.cleaned_data['bill_item_type'],
-                bill__business_year=self.cleaned_data['business_year'],
-            ).delete()
+        SubscriptionSurcharge.objects.bulk_create(surcharges)
+        contribution_round.surcharges.add(*surcharges)
+        return len(surcharges)

@@ -13,5 +13,5 @@ urlpatterns = [
     path('manage/details/', admin.details, name='admin-details'),
     path('manage/<int:round_id>/summary', admin.summary, name='admin-summary'),
     path('manage/<int:round_id>/status/set', admin.set_status, name='admin-status-set'),
-    path('manage/<int:round_id>/transfer/bill', admin.transfer_bill, name='admin-transfer-bill'),
+    path('manage/<int:round_id>/transfer/surcharge', admin.transfer_surcharge, name='admin-transfer-surcharge'),
 ]

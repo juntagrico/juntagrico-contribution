@@ -3,6 +3,7 @@
 {% load i18n %}
 {% load juntagrico.common %}
 {% load juntagrico.config %}
+{% load crispy_forms_tags %}
 
 {% block page_title %}
     <h3>
@@ -13,11 +14,6 @@
 {% block content %}
     {% requires_core as b_requires_core %}
     {% vocabulary "assignment_pl" as v_assignment_pl %}
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{% if message.level_tag == 'success' %}success{% else %}danger{% endif %}">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
 
     {% config "currency" as c_currency %}
     <h4>Status</h4>
@@ -68,26 +64,34 @@
                 </button>
             </form>
         </div>
-        {% if bill_transfer_form.enabled and perms.juntagrico_billing.change_billitem %}
-            <p>
-                {% blocktrans trimmed %}
-                    Die Gebote können nun in die Rechnungen übertragen werden.
-                    Dafür müssen die Rechnungen schon generiert worden sein.
-                    Die Zuordnung zu einem Rechnungselement-Typ is optional.
-                {% endblocktrans %}
-            </p>
-            <form action="{% url 'jcr:admin-transfer-bill' round.id %}" method="POST">
-                {% csrf_token %}
-                {{ bill_transfer_form }}
-                <div>
-                    <button type="submit" class="btn btn-info">
-                        {% trans "Beiträge in Rechnungen übertragen" %}
-                    </button>
+        {% if perms.juntagrico.add_subscriptionsurcharge %}
+            <h4>Ergebnisse als Aufschläge übertragen</h4>
+            {% if has_surcharges %}
+                <p>
+                    {% blocktrans trimmed %}
+                        Die Ergebnisse der Bieterrunde wurden bereits als Aufschläge auf die Abos übertragen.
+                    {% endblocktrans %}
+                </p>
+                <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
+                    {% csrf_token %}
                     <button type="submit" name="undo" value="1" class="btn btn-outline-danger">
-                        {% trans "Rückgängig machen" %}
+                        {% trans "Bestehende Aufschläge entfernen" %}
                     </button>
-                </div>
-            </form>
+                </form>
+            {% else %}
+                <p>
+                    {% blocktrans trimmed %}
+                        Die Ergebnisse der Bieterrunde können nun als Aufschläge auf die Abos übertragen werden.
+                    {% endblocktrans %}
+                </p>
+                <form class="col-md-3 pl-0" action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
+                    {% csrf_token %}
+                    {{ surcharge_transfer_form | crispy }}
+                    <button type="submit" class="btn btn-info">
+                        {% trans "Ergebnisse übertragen" %}
+                    </button>
+                </form>
+            {% endif %}
         {% endif %}
     {% endif %}
 

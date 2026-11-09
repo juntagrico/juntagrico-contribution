@@ -22,6 +22,9 @@ class ContributionRound(models.Model):
 
     name = models.CharField(_('Name'), max_length=100, unique=True,
                             help_text=_('Eindeutiger Name dieser Beitragsrunde'))
+    surcharges = models.ManyToManyField(
+        'juntagrico.SubscriptionSurcharge', related_name='contribution_rounds', blank=True
+    )
     description = models.TextField(_('Beschreibung'), default='', blank=True)
     description_assignments = models.TextField(_('Beschreibung Einsätze'), default='', blank=True)
     target_amount = models.DecimalField(_('Ziel-Betrag'), max_digits=9, decimal_places=2)
