@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils.translation import gettext as _
 
-from juntagrico_contribution.forms import RoundForm, BillTransferForm
+from juntagrico_contribution.forms import RoundForm, SurchargeTransferForm
 from juntagrico_contribution.models import ContributionRound, ContributionSelection
 
 
@@ -25,7 +25,8 @@ def summary(request, round_id):
     contribution_round = get_object_or_404(ContributionRound, id=round_id)
     return render(request, 'jcr/management/summary.html', {
         'round': contribution_round,
-        'bill_transfer_form': BillTransferForm(),
+        'surcharge_transfer_form': SurchargeTransferForm(),
+        'has_surcharges': contribution_round.surcharges.exists(),
     })
 
 
@@ -51,25 +52,22 @@ def set_status(request, round_id):
 
 
 @require_POST
-@permission_required('juntagrico_contribution.view_contributionround')
-@permission_required('juntagrico_billing.change_billitem')
-def transfer_bill(request, round_id):
+@permission_required('juntagrico_contribution.change_contributionround')
+def transfer_surcharge(request, round_id):
     contribution_round = get_object_or_404(ContributionRound, id=round_id)
-    form = BillTransferForm(request.POST)
-    if form.is_valid():
-        if request.POST.get('undo'):
-            form.delete(contribution_round)
-            messages.success(request, _('Rechnungs-Einträge dieser Beitragsrunde entfernt.'))
-        else:
-            failed = form.save(contribution_round)
-            if failed is True:
-                messages.error(request, _('Übertragung fehlgeschlagen: Juntagrico Billing ist nicht aktiv.'))
-            elif len(failed) > 0:
-                messages.error(request, _('{} Einträge konnten nicht erstellt werden. '
-                                          'Wurden die Rechnungen schon generiert?').format(len(failed)))
-            else:
-                messages.success(request, _('Übertragung erfolgreich abgeschlossen'))
-    return redirect(request.POST.get('next', reverse('jcr:admin-summary', args=(contribution_round.id,))))
+    if contribution_round.status != ContributionRound.STATUS_CLOSED:
+        messages.error(request, _('Nur geschlossene Beitragsrunden können übertragen werden.'))
+    elif request.POST.get('undo'):
+        contribution_round.surcharges.all().delete()
+        messages.success(request, _('Aufschläge dieser Beitragsrunde entfernt.'))
+    elif contribution_round.surcharges.exists():
+        messages.error(request, _('Die Übertragung wurde bereits durchgeführt.'))
+    else:
+        form = SurchargeTransferForm(request.POST)
+        if form.is_valid():
+            created = form.save(contribution_round)
+            messages.success(request, _('{} Aufschläge wurden erstellt.').format(created))
+    return redirect(reverse('jcr:admin-summary', args=(contribution_round.id,)))
 
 
 @permission_required('juntagrico_contribution.view_contributionround')

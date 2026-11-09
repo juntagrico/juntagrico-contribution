@@ -68,26 +68,28 @@
                 </button>
             </form>
         </div>
-        {% if bill_transfer_form.enabled and perms.juntagrico_billing.change_billitem %}
+        {% if perms.juntagrico_contribution.change_contributionround %}
             <p>
                 {% blocktrans trimmed %}
-                    Die Gebote können nun in die Rechnungen übertragen werden.
-                    Dafür müssen die Rechnungen schon generiert worden sein.
-                    Die Zuordnung zu einem Rechnungselement-Typ is optional.
+                    Die Ergebnisse können nun als Aufschläge auf die Abonnements übertragen werden.
                 {% endblocktrans %}
             </p>
-            <form action="{% url 'jcr:admin-transfer-bill' round.id %}" method="POST">
-                {% csrf_token %}
-                {{ bill_transfer_form }}
-                <div>
-                    <button type="submit" class="btn btn-info">
-                        {% trans "Beiträge in Rechnungen übertragen" %}
-                    </button>
+            {% if has_surcharges %}
+                <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
+                    {% csrf_token %}
                     <button type="submit" name="undo" value="1" class="btn btn-outline-danger">
-                        {% trans "Rückgängig machen" %}
+                        {% trans "Aufschläge entfernen" %}
                     </button>
-                </div>
-            </form>
+                </form>
+            {% else %}
+                <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
+                    {% csrf_token %}
+                    {{ surcharge_transfer_form }}
+                    <button type="submit" class="btn btn-info">
+                        {% trans "Ergebnisse übertragen" %}
+                    </button>
+                </form>
+            {% endif %}
         {% endif %}
     {% endif %}
 
