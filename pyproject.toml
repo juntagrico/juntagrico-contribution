@@ -12,7 +12,7 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
-    "juntagrico @ git+https://github.com/juntagrico/juntagrico.git@releases/2.1",
+    "juntagrico>=2.1.0",
     "django-admin-sortable2~=2.3.0"
 ]
 classifiers = [
