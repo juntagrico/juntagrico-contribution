@@ -67,7 +67,10 @@ def transfer_surcharge(request, round_id):
         form = SurchargeTransferForm(request.POST)
         if form.is_valid():
             created = form.save(contribution_round)
-            messages.success(request, _('{} Aufschläge wurden erstellt.').format(created))
+            if created == 0:
+                messages.warning(request, _('Es wurden keine Aufschläge erstellt, weil alle Gebote dem Nominalwert entsprechen.'))
+            else:
+                messages.success(request, _('{} Aufschläge wurden erstellt.').format(created))
     return redirect(reverse('jcr:admin-summary', args=(contribution_round.id,)))
 
 
