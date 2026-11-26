@@ -1,16 +1,13 @@
-from datetime import date
-
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from django import forms
 from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
-from juntagrico.entity.subs import SubscriptionPart, SubscriptionSurcharge
+from juntagrico.entity.subs import SubscriptionSurcharge
 from juntagrico.templatetags.juntagrico.common import requires_core
 from juntagrico.util.temporal import start_of_next_business_year
 
@@ -164,7 +161,6 @@ class SurchargeTransferForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['date'].initial = start_of_next_business_year()
         
-
     @transaction.atomic
     def save(self, contribution_round):
         selections = list(contribution_round.valid_selections())

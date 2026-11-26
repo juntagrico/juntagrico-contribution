@@ -63,7 +63,7 @@ def transfer_surcharge(request, round_id):
         try:
             contribution_round.surcharges.all().delete()
             messages.success(request, _('Aufschläge dieser Beitragsrunde entfernt.'))
-        except IntegrityError as e:
+        except IntegrityError:
             messages.error(request, _('Die Aufschläge konnten nicht entfernt werden, weil sie bereits an anderer Stelle referenziert werden (z.B. auf Rechnungen).'))
     elif contribution_round.surcharges.exists():
         messages.error(request, _('Die Übertragung wurde bereits durchgeführt.'))
