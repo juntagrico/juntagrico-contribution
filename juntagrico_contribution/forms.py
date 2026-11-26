@@ -12,6 +12,7 @@ from django.utils.translation import gettext_lazy
 from juntagrico.config import Config
 from juntagrico.entity.subs import SubscriptionPart, SubscriptionSurcharge
 from juntagrico.templatetags.juntagrico.common import requires_core
+from juntagrico.util.temporal import start_of_next_business_year
 
 from juntagrico_contribution.models import ContributionRound, ContributionSelection, ContributionOption
 
@@ -113,7 +114,7 @@ class ContributionSelectionForm(forms.Form):
                 minimum_amount = max(minimum_amount, self.contribution.price)
             if other_amount is not None and other_amount < minimum_amount:
                 self.add_error('other_amount', _('Der Mindestbetrag ist {0:.2f} {1}').format(
-                    minimum_amount, Config.currency()
+                    minimum_amount, Config.currency_format()
                 ))
 
         # validate assignments
@@ -161,12 +162,12 @@ class SurchargeTransferForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        next_year = timezone.localdate().year + 1
-        self.fields['date'].initial = date(next_year, 1, 1)
+        self.fields['date'].initial = start_of_next_business_year()
+        
 
     @transaction.atomic
     def save(self, contribution_round):
-        selections = list(contribution_round.valid_selections().select_related('subscription'))
+        selections = list(contribution_round.valid_selections())
         if not selections:
             return 0
 
@@ -179,7 +180,7 @@ class SurchargeTransferForm(forms.Form):
             aggregates['nominal_core_assignments'] = Sum('type__required_core_assignments')
         nominal_values = {
             values['subscription_id']: values
-            for values in contribution_round.filter_parts(SubscriptionPart.objects)
+            for values in contribution_round.subscription_parts()
             .filter(subscription_id__in=[selection.subscription_id for selection in selections])
             .values('subscription_id')
             .annotate(**aggregates)
@@ -198,14 +199,15 @@ class SurchargeTransferForm(forms.Form):
                 if core_assignments_enabled else 0
             )
 
-            surcharges.append(SubscriptionSurcharge(
-                subscription=selection.subscription,
-                description=self.cleaned_data['description'],
-                amount=amount,
-                required_assignments=total_assignments,
-                required_core_assignments=core_assignments,
-                date=self.cleaned_data['date'],
-            ))
+            if amount != 0 or total_assignments != 0 or core_assignments != 0:
+                surcharges.append(SubscriptionSurcharge(
+                    subscription_id=selection.subscription_id,
+                    description=self.cleaned_data['description'],
+                    amount=amount,
+                    required_assignments=total_assignments,
+                    required_core_assignments=core_assignments,
+                    date=self.cleaned_data['date'],
+                ))
 
         SubscriptionSurcharge.objects.bulk_create(surcharges)
         contribution_round.surcharges.add(*surcharges)
