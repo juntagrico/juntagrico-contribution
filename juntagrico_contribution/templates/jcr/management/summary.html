@@ -68,8 +68,8 @@
             <h4>Ergebnisse als Aufschläge übertragen</h4>
             {% if has_surcharges %}
                 <p>
-                    {% blocktrans trimmed %}
-                        Die Ergebnisse der Bieterrunde wurden bereits als Aufschläge auf die Abos übertragen.
+                    {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl%}
+                        Die Ergebnisse der Beitragsrunde wurden bereits als Aufschläge auf die {{ v_subscription_pl }} übertragen.
                     {% endblocktrans %}
                 </p>
                 <form action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
@@ -80,8 +80,8 @@
                 </form>
             {% elif has_selections %}
                 <p>
-                    {% blocktrans trimmed %}
-                        Die Ergebnisse der Bieterrunde können nun als Aufschläge auf die Abos übertragen werden.
+                    {% blocktrans trimmed with v_subscription_pl=vocabulary.subscription_pl %}
+                        Die Ergebnisse der Beitragsrunde können nun als Aufschläge auf die {{ v_subscription_pl }} übertragen werden.
                     {% endblocktrans %}
                 </p>
                 <form class="col-md-3 pl-0" action="{% url 'jcr:admin-transfer-surcharge' round.id %}" method="POST">
