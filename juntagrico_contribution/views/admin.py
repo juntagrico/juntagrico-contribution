@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import IntegrityError
 from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404, redirect
@@ -59,8 +60,11 @@ def transfer_surcharge(request, round_id):
     if contribution_round.status != ContributionRound.STATUS_CLOSED:
         messages.error(request, _('Nur geschlossene Beitragsrunden können übertragen werden.'))
     elif request.POST.get('undo'):
-        contribution_round.surcharges.all().delete()
-        messages.success(request, _('Aufschläge dieser Beitragsrunde entfernt.'))
+        try:
+            contribution_round.surcharges.all().delete()
+            messages.success(request, _('Aufschläge dieser Beitragsrunde entfernt.'))
+        except IntegrityError as e:
+            messages.error(request, _('Die Aufschläge konnten nicht entfernt werden, weil sie bereits an anderer Stelle referenziert werden (z.B. auf Rechnungen).'))
     elif contribution_round.surcharges.exists():
         messages.error(request, _('Die Übertragung wurde bereits durchgeführt.'))
     else:
