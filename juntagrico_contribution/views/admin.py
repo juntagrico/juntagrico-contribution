@@ -27,6 +27,7 @@ def summary(request, round_id):
         'round': contribution_round,
         'surcharge_transfer_form': SurchargeTransferForm(),
         'has_surcharges': contribution_round.surcharges.exists(),
+        'has_selections': contribution_round.selections.exists()
     })
 
 

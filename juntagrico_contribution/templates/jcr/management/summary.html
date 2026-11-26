@@ -78,7 +78,7 @@
                         {% trans "Bestehende Aufschläge entfernen" %}
                     </button>
                 </form>
-            {% else %}
+            {% elif has_selections %}
                 <p>
                     {% blocktrans trimmed %}
                         Die Ergebnisse der Bieterrunde können nun als Aufschläge auf die Abos übertragen werden.
