@@ -88,9 +88,11 @@ class SurchargeTransferTests(ContributionTestCase):
 
     def test_summary_shows_create_and_remove_actions(self):
         summary_url = reverse('jcr:admin-summary', args=(self.contribution_round.id,))
-        self.assertContains(self.assertGet(summary_url, member=self.admin), 'Ergebnisse übertragen')
+        self.assertNotContains(self.assertGet(summary_url, member=self.admin), 'Ergebnisse übertragen')
 
         self.create_selection()
+        self.assertContains(self.assertGet(summary_url, member=self.admin), 'Ergebnisse übertragen')
+
         self.submit_transfer()
         response = self.assertGet(summary_url, member=self.admin)
         self.assertContains(response, 'Aufschläge entfernen')
