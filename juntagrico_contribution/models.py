@@ -171,6 +171,8 @@ class ContributionRound(models.Model):
         parts = parts.filter(deactivation_date=None)
         if self.cancellation_cutoff:
             parts = parts.exclude(cancellation_date__lte=self.cancellation_cutoff)
+        else:
+            parts = parts.exclude(cancellation_date__isnull=False)
         if self.creation_cutoff:
             parts = parts.filter(creation_date__gte=self.creation_cutoff)
         return parts
