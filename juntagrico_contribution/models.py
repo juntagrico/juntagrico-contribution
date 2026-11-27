@@ -171,6 +171,8 @@ class ContributionRound(models.Model):
         parts = parts.filter(deactivation_date=None)
         if self.cancellation_cutoff:
             parts = parts.exclude(cancellation_date__lte=self.cancellation_cutoff)
+        else:
+            parts = parts.exclude(cancellation_date__isnull=False)
         if self.creation_cutoff:
             parts = parts.filter(creation_date__gte=self.creation_cutoff)
         return parts
@@ -205,7 +207,7 @@ class ContributionRound(models.Model):
 class ContributionOption(models.Model):
     round = models.ForeignKey(ContributionRound, on_delete=models.CASCADE, related_name='options',
                               verbose_name=_('Beitragsrunde'))
-    name = models.CharField(_('Name'), max_length=100, unique=True,
+    name = models.CharField(_('Name'), max_length=100,
                             help_text=_('Name dieser Option'))
     multiplier = models.FloatField(
         _('Multiplikator'), default=1,
@@ -241,6 +243,9 @@ class ContributionOption(models.Model):
         verbose_name = _('Beitrags-Option')
         verbose_name_plural = _('Beitrags-Optionen')
         ordering = ['sort_order']
+        constraints = [
+            models.UniqueConstraint(fields=['round', 'name'], name='unique_round_name')
+        ]
 
 
 class ContributionCondition(models.Model):
