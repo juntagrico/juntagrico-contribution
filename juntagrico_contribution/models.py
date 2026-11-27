@@ -205,7 +205,7 @@ class ContributionRound(models.Model):
 class ContributionOption(models.Model):
     round = models.ForeignKey(ContributionRound, on_delete=models.CASCADE, related_name='options',
                               verbose_name=_('Beitragsrunde'))
-    name = models.CharField(_('Name'), max_length=100, unique=True,
+    name = models.CharField(_('Name'), max_length=100,
                             help_text=_('Name dieser Option'))
     multiplier = models.FloatField(
         _('Multiplikator'), default=1,
@@ -241,6 +241,9 @@ class ContributionOption(models.Model):
         verbose_name = _('Beitrags-Option')
         verbose_name_plural = _('Beitrags-Optionen')
         ordering = ['sort_order']
+        constraints = [
+            models.UniqueConstraint(fields=['round', 'name'], name='unique_round_name')
+        ]
 
 
 class ContributionCondition(models.Model):

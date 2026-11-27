@@ -1,7 +1,8 @@
+from django.db import IntegrityError, transaction
 from django.urls import reverse
 from juntagrico.tests import JuntagricoTestCase
 from . import ContributionTestCase, AssignmentMixin
-from ..models import ContributionRound
+from ..models import ContributionOption, ContributionRound
 from decimal import Decimal
 
 
@@ -34,6 +35,27 @@ class ContributionTests(NoRoundTests, ContributionTestCase):
     def test_admin_actions(self):
         # does not accept get requests
         self.assertGet(reverse('jcr:admin-status-set', args=(self.contribution_round.id,)), code=405, member=self.admin)
+
+    def test_option_name_must_be_unique_within_round(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ContributionOption.objects.create(
+                    round=self.contribution_round,
+                    name=self.option1.name,
+                )
+
+    def test_option_name_can_be_reused_in_another_round(self):
+        other_round = ContributionRound.objects.create(
+            name='Beitragsrunde 2',
+            target_amount=1000000.00,
+        )
+
+        option = ContributionOption.objects.create(
+            round=other_round,
+            name=self.option1.name,
+        )
+
+        self.assertEqual(option.name, self.option1.name)
 
     def test_total_nominal(self):
         self.assertEqual(self.contribution_round.total_nominal, sum(
